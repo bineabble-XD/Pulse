@@ -5,78 +5,61 @@ import {
   Col,
   FormGroup,
   Label,
-  Input,
   Button,
 } from "reactstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
+import { useDispatch, useSelector } from "react-redux";
 
 import logo from "../assets/LogoBg.png";
-// If you later add your own schema and slice, you can re-enable these:
-// import { UserSchemaValidation } from "../validations/userSchemaValidation";
-// import { getUser } from "../features/UserSlice";
-// import { useDispatch, useSelector } from "react-redux";
-
-// TEMP: simple local schema so the page works
-const UserSchemaValidation = yup.object().shape({
-  email: yup.string().email("Invalid email").required("Email is required"),
-  password: yup.string().min(6, "Min 6 characters").required("Password is required"),
-});
+import { UserSchemaValidation } from "../validations/userSchemaValidation";
+import { getUser, resetStatus } from "../features/PulseSlice";
 
 const Login = () => {
-  // UseStates (same style as your reference)
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // const dispatch = useDispatch();
-  // const user = useSelector((state) => state.users.user);
-  // const isSuccess = useSelector((state) => state.users.isSuccess);
-  // const isError = useSelector((state) => state.users.isError);
+  const dispatch = useDispatch();
+  const { user, isSuccess, isError, message, isLoading } = useSelector(
+    (state) => state.users       // 👈 make sure this matches store.jsx
+  );
   const navigate = useNavigate();
 
-  // Validation configuration
+  // ✅ clear any old "Register failed" / other auth messages
+  useEffect(() => {
+    dispatch(resetStatus());
+  }, [dispatch]);
+
   const {
     register,
     handleSubmit: submitForm,
     formState: { errors },
-  } = useForm({ resolver: yupResolver(UserSchemaValidation) });
+  } = useForm({
+    resolver: yupResolver(UserSchemaValidation),
+  });
 
   const validate = () => {
-    const data = {
-      email,
-      password,
-    };
-
-    console.log("LOGIN DATA:", data);
-    // Later you can dispatch(getUser(data)) here
-
-    // TEMP: navigate to home on "success"
-    navigate("/home");
+    const data = { email, password };
+    dispatch(getUser(data));
   };
 
-  // If you re-enable Redux login, you can re-enable this effect
-  /*
   useEffect(() => {
-    if (user && isSuccess) navigate("/home");
-    if (isError) navigate("/");
-  }, [user, isSuccess, isError, navigate]);
-  */
+    if (user && isSuccess) {
+      navigate("/home");
+      dispatch(resetStatus());
+    }
+  }, [user, isSuccess, navigate, dispatch]);
 
   return (
     <div className="page login-bg login-page">
-      {/* top bar like landing/register */}
       <header className="top-bar">
         <div className="brand-left">
           <img src={logo} alt="Pulse logo" className="brand-logo" />
           <span className="brand-title">PULSE</span>
         </div>
-
-        
       </header>
 
-      {/* center login card */}
       <Container fluid className="login-container">
         <Row className="justify-content-center">
           <Col md="5">
@@ -111,18 +94,24 @@ const Login = () => {
                 <p className="login-error">{errors.password?.message}</p>
               </FormGroup>
 
-              {/* LOGIN button */}
+              {/* BACKEND LOGIN ERROR */}
+              {isError && message && (
+                <p className="login-error" style={{ marginTop: "0.5rem" }}>
+                  {message}
+                </p>
+              )}
+
               <FormGroup>
                 <Button
                   onClick={submitForm(validate)}
                   className="form-control login-submit"
                   color="dark"
+                  disabled={isLoading}
                 >
-                  LOGIN
+                  {isLoading ? "LOADING..." : "LOGIN"}
                 </Button>
               </FormGroup>
 
-              {/* Bottom links */}
               <FormGroup className="text-center login-bottom">
                 <p className="login-bottom-text">
                   DONT HAVE AN ACCOUNT?{" "}
@@ -131,7 +120,10 @@ const Login = () => {
                   </Link>
                 </p>
                 <p>
-                  <Link to="/reset-password" className="login-forgot-link">
+                  <Link
+                    to="/reset-password"
+                    className="login-forgot-link"
+                  >
                     FORGET PASSWORD!
                   </Link>
                 </p>

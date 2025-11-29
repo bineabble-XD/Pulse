@@ -2,6 +2,10 @@ import React, { useState } from "react";
 import logoBg from "../assets/LogoBg.png";
 import bgTexture from "../assets/3.png";
 
+import { useDispatch } from "react-redux";
+import { logout } from "../features/PulseSlice";
+import { useNavigate } from "react-router-dom";
+
 const INITIAL_NOTES = [
   {
     id: 1,
@@ -24,6 +28,15 @@ const Home = () => {
   const [newNote, setNewNote] = useState("");
   const [file, setFile] = useState(null);
   const [fileInputKey, setFileInputKey] = useState(0); // to reset file input
+
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  // ✅ WORKING LOGOUT
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/login");
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -79,7 +92,12 @@ const Home = () => {
               HOME
             </button>
             <button className="home-nav-link">VIEW PROFILE</button>
-            <button className="home-nav-link home-nav-link--danger">
+
+            {/* ✅ WORKING LOGOUT BUTTON */}
+            <button
+              className="home-nav-link home-nav-link--danger"
+              onClick={handleLogout}
+            >
               LOG OUT
             </button>
           </nav>

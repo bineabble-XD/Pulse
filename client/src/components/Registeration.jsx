@@ -1,14 +1,13 @@
 import React, { useState } from "react";
-import {
-  Container,
-  Row,
-  Col,
-  FormGroup,
-  Label,
-  Button,
-} from "reactstrap";
+import { Container, Row, Col, FormGroup, Label, Button } from "reactstrap";
 import { Link, useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useDispatch } from "react-redux";
+
 import logo from "../assets/LogoBg.png";
+import { UserRegisterSchemaValidation } from "../validations/UserRegisterSchemaValidation";
+import { addUser } from "../features/PulseSlice";
 
 const Registeration = () => {
   // UseStates – same style as your reference
@@ -21,27 +20,35 @@ const Registeration = () => {
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("");
 
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const onSubmit = (e) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit: submitForm,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(UserRegisterSchemaValidation),
+  });
 
+  const validate = () => {
     const data = {
-      name,
-      lastName,
+      fname: name,
+      lname: lastName,
       email,
       password,
       address,
-      phoneNumber,
+      phnum: phoneNumber,
       age,
       gender,
     };
 
-    console.log("REGISTER DATA:", data);
-    // TODO: send data to backend / Redux here
+    dispatch(addUser(data)).then((res) => {
+      if (res.meta.requestStatus === "fulfilled") {
+        navigate("/login");
+      }
+    });
 
-    // example: go to home after registering
-    navigate("/home");
   };
 
   return (
@@ -58,22 +65,25 @@ const Registeration = () => {
         </Link>
       </header>
 
-      {/* center registration card */}
+      {/* center registration card (design unchanged) */}
       <Container fluid className="register-container">
         <Row className="justify-content-center">
           <Col md="5">
             <h1 className="register-title text-center">REGISTERATION</h1>
 
-            <form className="register-card" onSubmit={onSubmit}>
+            <form className="register-card">
               {/* NAME */}
               <FormGroup className="register-field">
                 <Label className="register-label">NAME</Label>
                 <input
                   type="text"
                   className="form-control register-input"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  {...register("name", {
+                    value: name,
+                    onChange: (e) => setName(e.target.value),
+                  })}
                 />
+                <p className="register-error">{errors.name?.message}</p>
               </FormGroup>
 
               {/* LAST NAME */}
@@ -82,9 +92,14 @@ const Registeration = () => {
                 <input
                   type="text"
                   className="form-control register-input"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
+                  {...register("lastName", {
+                    value: lastName,
+                    onChange: (e) => setLastName(e.target.value),
+                  })}
                 />
+                <p className="register-error">
+                  {errors.lastName?.message}
+                </p>
               </FormGroup>
 
               {/* EMAIL */}
@@ -93,9 +108,12 @@ const Registeration = () => {
                 <input
                   type="email"
                   className="form-control register-input"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  {...register("email", {
+                    value: email,
+                    onChange: (e) => setEmail(e.target.value),
+                  })}
                 />
+                <p className="register-error">{errors.email?.message}</p>
               </FormGroup>
 
               {/* PASSWORD */}
@@ -104,9 +122,14 @@ const Registeration = () => {
                 <input
                   type="password"
                   className="form-control register-input"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  {...register("password", {
+                    value: password,
+                    onChange: (e) => setPassword(e.target.value),
+                  })}
                 />
+                <p className="register-error">
+                  {errors.password?.message}
+                </p>
               </FormGroup>
 
               {/* ADDRESS */}
@@ -115,9 +138,14 @@ const Registeration = () => {
                 <input
                   type="text"
                   className="form-control register-input"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
+                  {...register("address", {
+                    value: address,
+                    onChange: (e) => setAddress(e.target.value),
+                  })}
                 />
+                <p className="register-error">
+                  {errors.address?.message}
+                </p>
               </FormGroup>
 
               {/* PHONE NUMBER */}
@@ -126,9 +154,14 @@ const Registeration = () => {
                 <input
                   type="text"
                   className="form-control register-input"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  {...register("phoneNumber", {
+                    value: phoneNumber,
+                    onChange: (e) => setPhoneNumber(e.target.value),
+                  })}
                 />
+                <p className="register-error">
+                  {errors.phoneNumber?.message}
+                </p>
               </FormGroup>
 
               {/* AGE */}
@@ -136,16 +169,21 @@ const Registeration = () => {
                 <Label className="register-label">AGE</Label>
                 <select
                   className="form-control register-input"
-                  value={age}
-                  onChange={(e) => setAge(e.target.value)}
+                  {...register("age", {
+                    value: age,
+                    onChange: (e) => setAge(e.target.value),
+                  })}
                 >
                   <option value="">Select age</option>
-                  {Array.from({ length: 83 }, (_, i) => 18 + i).map((a) => (
-                    <option key={a} value={a}>
-                      {a}
-                    </option>
-                  ))}
+                  {Array.from({ length: 83 }, (_, i) => 18 + i).map(
+                    (a) => (
+                      <option key={a} value={a}>
+                        {a}
+                      </option>
+                    )
+                  )}
                 </select>
+                <p className="register-error">{errors.age?.message}</p>
               </FormGroup>
 
               {/* GENDER */}
@@ -153,20 +191,25 @@ const Registeration = () => {
                 <Label className="register-label">GENDER</Label>
                 <select
                   className="form-control register-input"
-                  value={gender}
-                  onChange={(e) => setGender(e.target.value)}
+                  {...register("gender", {
+                    value: gender,
+                    onChange: (e) => setGender(e.target.value),
+                  })}
                 >
                   <option value="">Select gender</option>
                   <option value="male">Male</option>
                   <option value="female">Female</option>
                   <option value="other">Other</option>
                 </select>
+                <p className="register-error">
+                  {errors.gender?.message}
+                </p>
               </FormGroup>
 
               {/* SUBMIT BUTTON */}
               <FormGroup>
                 <Button
-                  type="submit"
+                  onClick={submitForm(validate)}
                   className="form-control register-submit"
                   color="dark"
                 >

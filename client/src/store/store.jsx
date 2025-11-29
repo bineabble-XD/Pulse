@@ -1,9 +1,10 @@
-import { configureStore } from '@reduxjs/toolkit';
-import authReducer from '../features/PulsSlice';
+// src/app/store.jsx
+import { configureStore } from "@reduxjs/toolkit";
+import usersReducer from "../features/PulseSlice";
 
 const store = configureStore({
   reducer: {
-    auth: authReducer,
+    users: usersReducer,
   },
 });
 
