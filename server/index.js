@@ -1,14 +1,25 @@
-const express = require("express");
+import express from 'express';
+import cors from 'cors';
+import mongoose from 'mongoose';
+import UserModel from './models/UserModel.js';
+
+
 const app = express();
+app.use(cors());
+app.use(express.json());
 
-app.use(express.json()); // lets you read JSON bodies
+const connectionString =
+  "mongodb+srv://admin:admin@students.ll5gldx.mongodb.net/PulseDb?appName=students";
+  
+mongoose
+  .connect(connectionString)
+  .then(() => {
+    console.log("Database Connected..");
 
-// simple route
-app.get("/", (req, res) => {
-  res.send("Server is running!");
-});
-
-// start server
-app.listen(5000, () => {
-  console.log("Server running on port 5000");
-});
+    app.listen(6969, () => {
+      console.log("Server connected at port number 6969..");
+    });
+  })
+  .catch((error) => {
+    console.log("Database connection error: " + error);
+  });
