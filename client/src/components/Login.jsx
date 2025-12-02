@@ -44,12 +44,19 @@ const Login = () => {
     dispatch(getUser(data));
   };
 
-  useEffect(() => {
-    if (user && isSuccess) {
-      navigate("/home");
-      dispatch(resetStatus());
+useEffect(() => {
+  if (user && isSuccess) {
+    // 🔥 check role or isAdmin from backend
+    if (user.role === "admin" || user.isAdmin) {
+      navigate("/admin");       // admin page route
+    } else {
+      navigate("/home");        // normal user
     }
-  }, [user, isSuccess, navigate, dispatch]);
+
+    dispatch(resetStatus());
+  }
+}, [user, isSuccess, navigate, dispatch]);
+
 
   return (
     <div className="page login-bg login-page">

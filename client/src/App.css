@@ -1400,3 +1400,94 @@
 .reset-btn:active {
   transform: scale(0.98);
 }
+
+
+.profile-avatar-image {
+  width: 140px;           /* adjust the size you want */
+  height: 140px;
+  border-radius: 50%;     /* THIS makes it a perfect circle */
+  object-fit: cover;      /* zoom + crop image to fill circle */
+  border: 3px solid white;
+}
+
+.profile-post-avatar-image {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.navbar-avatar {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+
+.home-note-avatar-image {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.home-post-comments {
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.home-post-comments-list {
+  max-height: 150px;
+  overflow-y: auto;
+  margin-bottom: 0.5rem;
+}
+
+.home-post-comment {
+  font-size: 0.8rem;
+  color: #f5f5f5;
+  margin-bottom: 0.25rem;
+}
+
+.home-post-comment-author {
+  font-weight: 600;
+  margin-right: 0.25rem;
+}
+
+.home-post-comment-input-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.home-post-comment-input {
+  flex: 1;
+  border-radius: 999px;
+  border: none;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+}
+
+.home-post-comment-send {
+  border-radius: 999px;
+  border: none;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+
+.profile-post-media {
+  margin-top: 0.75rem;
+}
+
+.profile-post-image,
+.profile-post-video {
+  width: 100%;
+  max-height: 400px;
+  object-fit: cover;
+  border-radius: 16px;
+  display: block;
+}

@@ -1,24 +1,39 @@
+// src/components/Registeration.jsx
 import React, { useState } from "react";
-import { Container, Row, Col, FormGroup, Label, Button } from "reactstrap";
+import {
+  Container,
+  Row,
+  Col,
+  FormGroup,
+  Label,
+  Button,
+} from "reactstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useDispatch } from "react-redux";
+import axios from "axios";
 
 import logo from "../assets/LogoBg.png";
 import { UserRegisterSchemaValidation } from "../validations/UserRegisterSchemaValidation";
 import { addUser } from "../features/PulseSlice";
 
+const API_BASE = "http://localhost:6969";
+
 const Registeration = () => {
   // UseStates – same style as your reference
   const [name, setName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [username, setUsername] = useState(""); // 🔥 NEW
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [address, setAddress] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("");
+
+  const [usernameStatus, setUsernameStatus] = useState(null);
+  // null | "checking" | "ok" | "taken"
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -31,6 +46,31 @@ const Registeration = () => {
     resolver: yupResolver(UserRegisterSchemaValidation),
   });
 
+  // 🔥 check username availability
+  const checkUsername = async (value) => {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      setUsernameStatus(null);
+      return;
+    }
+
+    try {
+      setUsernameStatus("checking");
+      const res = await axios.get(`${API_BASE}/check-username`, {
+        params: { username: trimmed },
+      });
+
+      if (res.data.available) {
+        setUsernameStatus("ok");
+      } else {
+        setUsernameStatus("taken");
+      }
+    } catch (err) {
+      console.error("Username check error:", err);
+      setUsernameStatus("taken");
+    }
+  };
+
   const validate = () => {
     const data = {
       fname: name,
@@ -41,14 +81,21 @@ const Registeration = () => {
       phnum: phoneNumber,
       age,
       gender,
+      username, // 🔥 send username to backend
     };
+
+    if (usernameStatus === "taken") {
+      alert("Username is already taken. Please choose another one.");
+      return;
+    }
 
     dispatch(addUser(data)).then((res) => {
       if (res.meta.requestStatus === "fulfilled") {
         navigate("/login");
+      } else {
+        alert(res.payload?.message || "Registration failed");
       }
     });
-
   };
 
   return (
@@ -65,8 +112,13 @@ const Registeration = () => {
         </Link>
       </header>
 
-      {/* center registration card (design unchanged) */}
-      <Container fluid className="register-container">
+      {/* center registration card */}
+      {/* 🔥 add paddingTop so form starts below header */}
+      <Container
+        fluid
+        className="register-container"
+        style={{ paddingTop: "40px" }}
+      >
         <Row className="justify-content-center">
           <Col md="5">
             <h1 className="register-title text-center">REGISTERATION</h1>
@@ -100,6 +152,40 @@ const Registeration = () => {
                 <p className="register-error">
                   {errors.lastName?.message}
                 </p>
+              </FormGroup>
+
+              {/* USERNAME */}
+              <FormGroup className="register-field">
+                <Label className="register-label">USERNAME</Label>
+                <input
+                  type="text"
+                  className="form-control register-input"
+                  {...register("username", {
+                    value: username,
+                    onChange: (e) => setUsername(e.target.value),
+                  })}
+                  onBlur={(e) => checkUsername(e.target.value)}
+                />
+                <p className="register-error">
+                  {errors.username?.message}
+                </p>
+
+                {/* availability status with visible colors */}
+                {usernameStatus === "checking" && (
+                  <small style={{ color: "#cccccc" }}>
+                    Checking username...
+                  </small>
+                )}
+                {usernameStatus === "taken" && (
+                  <small style={{ color: "#ff4d4d" }}>
+                    Username already taken
+                  </small>
+                )}
+                {usernameStatus === "ok" && (
+                  <small style={{ color: "#4dff88" }}>
+                    Username is available
+                  </small>
+                )}
               </FormGroup>
 
               {/* EMAIL */}

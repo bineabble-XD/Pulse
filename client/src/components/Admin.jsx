@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import logoBg from "../assets/LogoBg.png";
+import Navbar from "./Navbar";
 
 const Admin = () => {
   const [members, setMembers] = useState([]);
@@ -39,33 +39,14 @@ const Admin = () => {
       const email = (m.email || "").toLowerCase();
       const id = (m._id || "").toLowerCase(); // MongoDB _id
 
-      return (
-        fullName.includes(q) ||
-        email.includes(q) ||
-        id.includes(q)
-      );
+      return fullName.includes(q) || email.includes(q) || id.includes(q);
     });
   }, [members, searchId]);
 
   return (
     <div className="admin-page">
-      {/* Top bar */}
-      <header className="admin-header">
-        <div className="admin-logo-wrap">
-          <img src={logoBg} alt="Pulse logo" className="admin-logo" />
-          <span className="admin-logo-text">PULSE</span>
-        </div>
-
-        <nav className="admin-nav">
-          <button className="admin-nav-link admin-nav-link--active">
-            HOME
-          </button>
-          <button className="admin-nav-link">VIEW PROFILE</button>
-          <button className="admin-nav-link admin-nav-link--danger">
-            LOG OUT
-          </button>
-        </nav>
-      </header>
+      {/* Shared Navbar */}
+      <Navbar />
 
       {/* Main content */}
       <main className="admin-content">

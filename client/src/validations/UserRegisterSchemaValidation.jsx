@@ -23,4 +23,8 @@ export const UserRegisterSchemaValidation = yup.object().shape({
     .min(18, "Minimum age is 18")
     .required("Age is required"),
   gender: yup.string().required("Gender is required"),
+  username: yup
+  .string()
+  .required("Username is required")
+  .min(3, "At least 3 characters"),
 });
