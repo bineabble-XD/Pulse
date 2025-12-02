@@ -91,3 +91,15 @@ app.post("/login", async (req, res) => {
     return res.status(500).json({ message: "Server error during login" });
   }
 });
+
+// GET /users  -> list all registered users
+app.get("/users", async (req, res) => {
+  try {
+    const users = await UserModel.find().sort({ fname: 1 }); // sort by first name
+    return res.json(users);
+  } catch (err) {
+    console.error("Get users error:", err);
+    return res.status(500).json({ message: "Error fetching users" });
+  }
+});
+

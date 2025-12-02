@@ -1,42 +1,51 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import logoBg from "../assets/LogoBg.png";
 
-const MEMBERS = [
-  {
-    id: "P-1001",
-    name: "ABBAS",
-    email: "abbas@pulse.com",
-    joinDate: "2023-01-12",
-    status: "ACTIVE",
-    phone: "11222",
-  },
-  {
-    id: "P-1002",
-    name: "KHALID",
-    email: "khalid@pulse.com",
-    joinDate: "2023-03-04",
-    status: "ACTIVE",
-    phone: "11222",
-  },
-  {
-    id: "P-1003",
-    name: "HASSAN",
-    email: "hassan@pulse.com",
-    joinDate: "2023-07-19",
-    status: "NOT ACTIVE",
-    phone: "11222",
-  },
-];
-
 const Admin = () => {
+  const [members, setMembers] = useState([]);
   const [searchId, setSearchId] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
+  // Fetch real users from backend
+  useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        const res = await fetch("http://localhost:6969/users");
+        if (!res.ok) {
+          throw new Error("Failed to fetch users");
+        }
+        const data = await res.json();
+        setMembers(data);
+      } catch (err) {
+        console.error(err);
+        setError("Error loading members");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMembers();
+  }, []);
+
+  // Filter by search (id, name, email)
   const filteredMembers = useMemo(() => {
-    if (!searchId.trim()) return MEMBERS;
-    return MEMBERS.filter((m) =>
-      m.id.toLowerCase().includes(searchId.trim().toLowerCase())
-    );
-  }, [searchId]);
+    if (!searchId.trim()) return members;
+
+    const q = searchId.trim().toLowerCase();
+
+    return members.filter((m) => {
+      const fullName = `${m.fname || ""} ${m.lname || ""}`.toLowerCase();
+      const email = (m.email || "").toLowerCase();
+      const id = (m._id || "").toLowerCase(); // MongoDB _id
+
+      return (
+        fullName.includes(q) ||
+        email.includes(q) ||
+        id.includes(q)
+      );
+    });
+  }, [members, searchId]);
 
   return (
     <div className="admin-page">
@@ -61,11 +70,12 @@ const Admin = () => {
       {/* Main content */}
       <main className="admin-content">
         <section className="admin-card">
-          {/* Table */}
+          {/* Header */}
           <div className="admin-table-header">
             <h2 className="admin-card-title">MEMBERS</h2>
           </div>
 
+          {/* Table */}
           <div className="admin-table-wrapper">
             <table className="admin-table">
               <thead>
@@ -80,54 +90,72 @@ const Admin = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredMembers.length === 0 ? (
+                {loading ? (
                   <tr>
                     <td colSpan="7" className="admin-empty-row">
-                      No members found for this ID.
+                      Loading members...
+                    </td>
+                  </tr>
+                ) : error ? (
+                  <tr>
+                    <td colSpan="7" className="admin-empty-row">
+                      {error}
+                    </td>
+                  </tr>
+                ) : filteredMembers.length === 0 ? (
+                  <tr>
+                    <td colSpan="7" className="admin-empty-row">
+                      No members found.
                     </td>
                   </tr>
                 ) : (
-                  filteredMembers.map((member) => (
-                    <tr key={member.id}>
-                      <td>{member.name}</td>
-                      <td>${member.id}</td>
-                      <td>{member.email}</td>
-                      <td>{member.joinDate}</td>
-                      <td>
-                        <span
-                          className={`admin-status-pill ${
-                            member.status === "ACTIVE"
-                              ? "admin-status-pill--active"
-                              : "admin-status-pill--inactive"
-                          }`}
-                        >
-                          {member.status}
-                        </span>
-                      </td>
-                      <td>{member.phone}</td>
-                      <td>
-                        <button className="admin-drop-btn">DROP</button>
-                      </td>
-                    </tr>
-                  ))
+                  filteredMembers.map((member) => {
+                    const fullName = `${member.fname} ${member.lname}`;
+                    const memberId = member._id;
+                    const joinDate = member.createdAt
+                      ? new Date(member.createdAt).toISOString().split("T")[0]
+                      : "—";
+                    const phone = member.phnum ?? "—";
+
+                    return (
+                      <tr key={memberId}>
+                        <td>{fullName}</td>
+                        <td>{memberId}</td>
+                        <td>{member.email}</td>
+                        <td>{joinDate}</td>
+                        <td>
+                          {/* For now, all are ACTIVE — you can add a real status field later */}
+                          <span className="admin-status-pill admin-status-pill--active">
+                            ACTIVE
+                          </span>
+                        </td>
+                        <td>{phone}</td>
+                        <td>
+                          <button className="admin-drop-btn">DROP</button>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
           </div>
 
-          {/* Search by ID */}
+          {/* Search by ID / name / email */}
           <div className="admin-search-section">
             <div className="admin-search-card">
-              <span className="admin-search-label">SEARCH BY ID:</span>
+              <span className="admin-search-label">SEARCH:</span>
               <div className="admin-search-controls">
                 <input
                   type="text"
                   className="admin-search-input"
-                  placeholder="Type member ID…"
+                  placeholder="Type ID, name, or email…"
                   value={searchId}
                   onChange={(e) => setSearchId(e.target.value)}
                 />
-                <button className="admin-search-btn">SEARCH</button>
+                <button className="admin-search-btn" type="button">
+                  SEARCH
+                </button>
               </div>
             </div>
           </div>

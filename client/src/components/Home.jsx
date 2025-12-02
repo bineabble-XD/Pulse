@@ -6,25 +6,9 @@ import { useDispatch } from "react-redux";
 import { logout } from "../features/PulseSlice";
 import { useNavigate } from "react-router-dom";
 
-const INITIAL_NOTES = [
-  {
-    id: 1,
-    user: "User",
-    text: "Today was one of those days that just felt right. Got things done, had some good conversations, and ended the day feeling calm.",
-    mediaUrl: null,
-    mediaType: null,
-  },
-  {
-    id: 2,
-    user: "unknown",
-    text: "Went to the park today and just walked without looking at my phone. Highly recommended.",
-    mediaUrl: null,
-    mediaType: null,
-  },
-];
-
 const Home = () => {
-  const [notes, setNotes] = useState(INITIAL_NOTES);
+  // start with EMPTY notes – no fake data
+  const [notes, setNotes] = useState([]);
   const [newNote, setNewNote] = useState("");
   const [file, setFile] = useState(null);
   const [fileInputKey, setFileInputKey] = useState(0); // to reset file input
@@ -55,7 +39,7 @@ const Home = () => {
 
     const nextNote = {
       id: Date.now(),
-      user: "User", // placeholder for current user
+      user: "User", // placeholder – can be replaced with real user from Redux
       text: trimmed,
       mediaUrl,
       mediaType,
@@ -150,53 +134,58 @@ const Home = () => {
 
           {/* Notes feed */}
           <section className="home-feed">
-            {notes.map((note) => (
-              <article key={note.id} className="home-note-card">
-                <header className="home-note-header">
-                  <div className="home-note-avatar">👤</div>
-                  <span className="home-note-username">@{note.user}</span>
-                </header>
+            {notes.length === 0 ? (
+              // empty state – no fake notes
+              null
+            ) : (
+              notes.map((note) => (
+                <article key={note.id} className="home-note-card">
+                  <header className="home-note-header">
+                    <div className="home-note-avatar">👤</div>
+                    <span className="home-note-username">@{note.user}</span>
+                  </header>
 
-                {note.mediaUrl && (
-                  <div className="home-note-media">
-                    {note.mediaType === "video" ? (
-                      <video
-                        src={note.mediaUrl}
-                        controls
-                        className="home-note-video"
-                      />
-                    ) : (
-                      <img
-                        src={note.mediaUrl}
-                        alt="User upload"
-                        className="home-note-image"
-                      />
-                    )}
-                  </div>
-                )}
+                  {note.mediaUrl && (
+                    <div className="home-note-media">
+                      {note.mediaType === "video" ? (
+                        <video
+                          src={note.mediaUrl}
+                          controls
+                          className="home-note-video"
+                        />
+                      ) : (
+                        <img
+                          src={note.mediaUrl}
+                          alt="User upload"
+                          className="home-note-image"
+                        />
+                      )}
+                    </div>
+                  )}
 
-                {note.text && (
-                  <p className="home-note-text">{note.text}</p>
-                )}
+                  {note.text && (
+                    <p className="home-note-text">{note.text}</p>
+                  )}
 
-                <footer className="home-note-footer">
-                  <button
-                    type="button"
-                    className="home-note-icon-btn"
-                    aria-label="Like"
-                  >
-                    👍
-                  </button>
-                  <button
-                    type="button"
-                    className="home-note-icon-btn"
-                    aria-label="Comment"
-                  >
-                    💬
-                  </button>
-                </footer>
-              </article>
-            ))}
+                  <footer className="home-note-footer">
+                    <button
+                      type="button"
+                      className="home-note-icon-btn"
+                      aria-label="Like"
+                    >
+                      👍
+                    </button>
+                    <button
+                      type="button"
+                      className="home-note-icon-btn"
+                      aria-label="Comment"
+                    >
+                      💬
+                    </button>
+                  </footer>
+                </article>
+              ))
+            )}
           </section>
         </main>
       </div>
