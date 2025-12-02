@@ -1252,3 +1252,151 @@
     max-width: 100%;
   }
 }
+
+/* =======================
+   RESET PASSWORD PAGE
+   ======================= */
+
+.reset-page {
+  min-height: 100vh;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  color: #ffffff;
+  font-family: "Poppins", sans-serif;
+}
+
+.reset-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.7)),
+              linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.55) 100%);
+}
+
+.reset-inner {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* HEADER */
+
+.reset-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 40px;
+}
+
+.reset-logo-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.reset-logo {
+  width: 60px;
+  height: 60px;
+}
+
+.reset-brand {
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: 0.18em;
+}
+
+.reset-login-link {
+  border: none;
+  background: transparent;
+  color: white;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+/* MAIN CARD */
+
+.reset-main {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-bottom: 60px;
+}
+
+.reset-card {
+  width: 100%;
+  max-width: 430px;
+  background: rgba(0,0,0,0.85);
+  padding: 30px 34px 36px;
+  border-radius: 34px;
+  box-shadow: 0 28px 60px rgba(0,0,0,0.9);
+  text-align: center;
+}
+
+.reset-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #ffe600;
+  letter-spacing: 0.18em;
+  margin-bottom: 24px;
+}
+
+/* FORM */
+
+.reset-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.reset-field {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.reset-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+
+.reset-input {
+  height: 36px;
+  border: none;
+  outline: none;
+  border-radius: 999px;
+  background: #bbbbbb;
+  padding: 0 14px;
+  font-size: 13px;
+  color: #000;
+}
+
+.reset-btn {
+  margin-top: 20px;
+  height: 40px;
+  width: 100%;
+  border: none;
+  background: #ffe600;
+  color: #000;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 12px 30px rgba(255,230,0,0.8);
+  transition: 0.15s ease;
+}
+
+.reset-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 40px rgba(255,230,0,1);
+}
+
+.reset-btn:active {
+  transform: scale(0.98);
+}
