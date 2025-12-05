@@ -11,6 +11,7 @@ import Admin from "./components/Admin.jsx";
 import ResetPassword from "./components/ResetPassword.jsx";
 import PublicProfile from "./components/PublicProfile.jsx";
 import RequireAuth from "./components/RequireAuth.jsx";
+import Following from "./components/Following.jsx";
 
 import { loadUserFromStorage } from "./features/PulseSlice";
 
@@ -26,13 +27,11 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* public routes */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Registeration />} />
         <Route path="/reset-password" element={<ResetPassword />} />
 
-        {/* protected routes */}
         <Route
           path="/home"
           element={
@@ -65,6 +64,15 @@ function App() {
           element={
             <RequireAuth>
               <PublicProfile />
+            </RequireAuth>
+          }
+        />
+
+        <Route
+          path="/following"
+          element={
+            <RequireAuth>
+              <Following />
             </RequireAuth>
           }
         />

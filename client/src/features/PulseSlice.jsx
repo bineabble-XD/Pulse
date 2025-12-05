@@ -22,13 +22,13 @@ export const addUser = createAsyncThunk(
   }
 );
 
-// LOGIN
+// LOGIN  -> backend returns { message, token, user }
 export const getUser = createAsyncThunk(
   "users/getUser",
   async (udata, { rejectWithValue }) => {
     try {
       const res = await axios.post(`${API_BASE}/login`, udata);
-      return res.data;
+      return res.data; // { message, token, user }
     } catch (err) {
       console.error(err);
       return rejectWithValue(
@@ -131,11 +131,12 @@ export const unfollowUser = createAsyncThunk(
 
 const initialState = {
   user: null,
+  token: null,
   message: "",
   isLoading: false,
   isSuccess: false,
   isError: false,
-  isHydrated: false, // 👈 NEW
+  isHydrated: false,
 };
 
 const PulseSlice = createSlice({
@@ -148,24 +149,31 @@ const PulseSlice = createSlice({
       state.isError = false;
       state.message = "";
     },
+    setCredentials: (state, action) => {
+      state.user = action.payload.user || null;
+      state.token = action.payload.token || null;
+
+      if (state.token) {
+        axios.defaults.headers.common["Authorization"] =
+          `Bearer ${state.token}`;
+      } else {
+        delete axios.defaults.headers.common["Authorization"];
+      }
+    },
+    setHydrated: (state) => {
+      state.isHydrated = true;
+    },
     logout: (state) => {
       state.user = null;
+      state.token = null;
       state.isSuccess = false;
       state.isError = false;
       state.message = "";
-      state.isHydrated = true; // we now know there is NO user
+      state.isHydrated = true;
+
       localStorage.removeItem("pulseUser");
-    },
-    loadUserFromStorage: (state) => {
-      const raw = localStorage.getItem("pulseUser");
-      if (raw) {
-        try {
-          state.user = JSON.parse(raw);
-        } catch {
-          state.user = null;
-        }
-      }
-      state.isHydrated = true; // 👈 mark that we've checked storage
+      localStorage.removeItem("pulseToken");
+      delete axios.defaults.headers.common["Authorization"];
     },
   },
   extraReducers: (builder) => {
@@ -204,24 +212,38 @@ const PulseSlice = createSlice({
         state.isLoading = false;
         state.isSuccess = true;
         state.isError = false;
-        state.isHydrated = true; // 👈 we now know the user
-        state.message =
-          action.payload?.message || "Login successful";
-        state.user = action.payload?.user || null;
-        if (state.user) {
+        state.isHydrated = true;
+
+        const { user, token, message } = action.payload || {};
+        state.message = message || "Login successful";
+        state.user = user || null;
+        state.token = token || null;
+
+        if (state.user && state.token) {
           localStorage.setItem("pulseUser", JSON.stringify(state.user));
+          localStorage.setItem("pulseToken", state.token);
+          axios.defaults.headers.common["Authorization"] =
+            `Bearer ${state.token}`;
+        } else {
+          localStorage.removeItem("pulseUser");
+          localStorage.removeItem("pulseToken");
+          delete axios.defaults.headers.common["Authorization"];
         }
       })
       .addCase(getUser.rejected, (state, action) => {
         state.isLoading = false;
         state.isSuccess = false;
         state.isError = true;
-        state.isHydrated = true; // 👈 also hydrated (but no user)
+        state.isHydrated = true;
         state.message =
           action.payload?.message ||
           "Login failed, please check your email or password";
         state.user = null;
+        state.token = null;
+
         localStorage.removeItem("pulseUser");
+        localStorage.removeItem("pulseToken");
+        delete axios.defaults.headers.common["Authorization"];
       })
 
       // UPDATE PROFILE PIC
@@ -292,9 +314,33 @@ const PulseSlice = createSlice({
   },
 });
 
-export const {
-  resetStatus,
-  logout,
-  loadUserFromStorage,
-} = PulseSlice.actions;
+export const { resetStatus, logout, setCredentials, setHydrated } =
+  PulseSlice.actions;
 export default PulseSlice.reducer;
+
+// === LOAD FROM LOCALSTORAGE ON APP START ==========================
+export const loadUserFromStorage = () => (dispatch) => {
+  try {
+    const raw = localStorage.getItem("pulseUser");
+    const token = localStorage.getItem("pulseToken");
+
+    if (raw && token) {
+      const user = JSON.parse(raw);
+
+      axios.defaults.headers.common["Authorization"] =
+        `Bearer ${token}`;
+
+      dispatch(
+        setCredentials({
+          user,
+          token,
+        })
+      );
+    }
+  } catch (err) {
+    console.error("Error loading user from storage:", err);
+  } finally {
+    // mark that we checked storage (even if no user)
+    dispatch(setHydrated());
+  }
+};

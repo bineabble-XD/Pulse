@@ -15,11 +15,17 @@ const PublicProfile = () => {
 
   const [profileUser, setProfileUser] = useState(null);
   const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);   // ✅ controls "Loading profile..."
+  const [loading, setLoading] = useState(true); // ✅ controls "Loading profile..."
   const [error, setError] = useState("");
 
   const [isFollowingLocal, setIsFollowingLocal] = useState(false);
   const [commentInputs, setCommentInputs] = useState({}); // per-post comment inputs
+
+  // 🔥 fullscreen image modal state
+  const [imageModal, setImageModal] = useState({
+    open: false,
+    url: "",
+  });
 
   const isOwnProfile =
     currentUser && profileUser && currentUser._id === profileUser._id;
@@ -51,7 +57,6 @@ const PublicProfile = () => {
         console.error("Public profile error:", err);
         setError("Error loading profile");
       } finally {
-        // ✅ make sure we stop showing "Loading profile..."
         setLoading(false);
       }
     };
@@ -112,14 +117,15 @@ const PublicProfile = () => {
     }
   };
 
-  // LIKE / UNLIKE
+  // LIKE / UNLIKE (no userId body – backend uses token)
   const handleToggleLike = async (postId) => {
     if (!currentUser?._id) return;
 
     try {
-      const res = await axios.post(`${API_BASE}/posts/${postId}/like`, {
-        userId: currentUser._id,
-      });
+      const res = await axios.post(
+        `${API_BASE}/posts/${postId}/like`,
+        {}
+      );
 
       const updated = res.data.post;
       setPosts((prev) =>
@@ -139,6 +145,7 @@ const PublicProfile = () => {
     }));
   };
 
+  // only send { text } – backend uses token
   const handleAddComment = async (postId) => {
     if (!currentUser?._id) return;
 
@@ -148,10 +155,7 @@ const PublicProfile = () => {
     try {
       const res = await axios.post(
         `${API_BASE}/posts/${postId}/comment`,
-        {
-          userId: currentUser._id,
-          text,
-        }
+        { text }
       );
 
       const updated = res.data.post;
@@ -198,7 +202,9 @@ const PublicProfile = () => {
         <div className="profile-inner">
           <Navbar />
           <main className="profile-content">
-            <p className="profile-empty-text">{error || "User not found"}</p>
+            <p className="profile-empty-text">
+              {error || "User not found"}
+            </p>
           </main>
         </div>
       </div>
@@ -329,13 +335,19 @@ const PublicProfile = () => {
                           <video
                             src={post.mediaUrl}
                             controls
-                            className="home-note-video"
+                            className="profile-post-video"
                           />
                         ) : (
                           <img
                             src={post.mediaUrl}
                             alt="Post"
-                            className="home-note-image"
+                            className="profile-post-image"
+                            onClick={() =>
+                              setImageModal({
+                                open: true,
+                                url: post.mediaUrl,
+                              })
+                            }
                           />
                         )}
                       </div>
@@ -417,6 +429,32 @@ const PublicProfile = () => {
           </section>
         </main>
       </div>
+
+      {/* 🔥 FULLSCREEN IMAGE MODAL (shared styles) */}
+      {imageModal.open && (
+        <div
+          className="image-modal-backdrop"
+          onClick={() => setImageModal({ open: false, url: "" })}
+        >
+          <div
+            className="image-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={imageModal.url}
+              alt="Full"
+              className="image-modal-img"
+            />
+            <button
+              className="image-modal-close"
+              type="button"
+              onClick={() => setImageModal({ open: false, url: "" })}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

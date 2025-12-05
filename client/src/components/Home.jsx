@@ -8,18 +8,38 @@ import axios from "axios";
 
 const API_BASE = "http://localhost:6969";
 
+// 🔹 helper to format createdAt
+const formatDateTime = (isoString) => {
+  if (!isoString) return "";
+  const d = new Date(isoString);
+  if (isNaN(d.getTime())) return "";
+
+  const day = String(d.getDate()).padStart(2, "0");
+  const monthShort = d.toLocaleString("en", { month: "short" }); // Dec, Jan, etc.
+  const hours = String(d.getHours()).padStart(2, "0");
+  const mins = String(d.getMinutes()).padStart(2, "0");
+
+  return `${day} ${monthShort} · ${hours}:${mins}`;
+};
+
 const Home = () => {
-  // get current logged-in user from Redux
   const { user } = useSelector((state) => state.users);
   const navigate = useNavigate();
 
   const [posts, setPosts] = useState([]);
   const [newNote, setNewNote] = useState("");
+  const [location, setLocation] = useState("");        // ✅ NEW: location state
   const [file, setFile] = useState(null);
-  const [fileInputKey, setFileInputKey] = useState(0); // to reset file input
+  const [fileInputKey, setFileInputKey] = useState(0);
   const [loadingFeed, setLoadingFeed] = useState(true);
   const [commentInputs, setCommentInputs] = useState({});
 
+  const [imageModal, setImageModal] = useState({
+    open: false,
+    url: "",
+  });
+
+  // DELETE post – no authorId in body, backend uses token
   const handleDeletePost = async (postId) => {
     if (!user?._id) return;
 
@@ -27,10 +47,7 @@ const Home = () => {
     if (!confirmDelete) return;
 
     try {
-      await axios.delete(`${API_BASE}/posts/${postId}`, {
-        data: { authorId: user._id },
-      });
-
+      await axios.delete(`${API_BASE}/posts/${postId}`);
       setPosts((prev) => prev.filter((p) => p._id !== postId));
     } catch (err) {
       console.error("Delete post error:", err);
@@ -38,15 +55,12 @@ const Home = () => {
     }
   };
 
-  // 🔥 LIKE / UNLIKE
+  // LIKE / UNLIKE – no userId in body
   const handleToggleLike = async (postId) => {
     if (!user?._id) return;
 
     try {
-      const res = await axios.post(`${API_BASE}/posts/${postId}/like`, {
-        userId: user._id,
-      });
-
+      const res = await axios.post(`${API_BASE}/posts/${postId}/like`, {});
       const updated = res.data.post;
       setPosts((prev) =>
         prev.map((p) => (p._id === updated._id ? updated : p))
@@ -57,7 +71,7 @@ const Home = () => {
     }
   };
 
-  // 💬 handle typing in a comment input
+  // COMMENT typing
   const handleCommentChange = (postId, value) => {
     setCommentInputs((prev) => ({
       ...prev,
@@ -65,7 +79,7 @@ const Home = () => {
     }));
   };
 
-  // 💬 submit comment
+  // COMMENT submit – ✅ remove userId, backend uses JWT
   const handleAddComment = async (postId) => {
     if (!user?._id) return;
 
@@ -75,20 +89,15 @@ const Home = () => {
     try {
       const res = await axios.post(
         `${API_BASE}/posts/${postId}/comment`,
-        {
-          userId: user._id,
-          text,
-        }
+        { text }          // ✅ only send text
       );
 
       const updated = res.data.post;
 
-      // replace the post in state with the updated one
       setPosts((prev) =>
         prev.map((p) => (p._id === updated._id ? updated : p))
       );
 
-      // clear comment box for that post
       setCommentInputs((prev) => ({
         ...prev,
         [postId]: "",
@@ -99,7 +108,7 @@ const Home = () => {
     }
   };
 
-  // 🔥 load DISCOVER feed from backend (all posts)
+  // load DISCOVER feed (public)
   useEffect(() => {
     const fetchDiscover = async () => {
       try {
@@ -114,20 +123,20 @@ const Home = () => {
     };
 
     fetchDiscover();
-  }, []); // no dependency -> always discover, not tied to user.following
+  }, []);
 
+  // CREATE POST – ✅ send location
   const handleSubmit = async (e) => {
     e.preventDefault();
     const trimmed = newNote.trim();
 
-    // Require at least text OR media
     if (!trimmed && !file) return;
-    if (!user?._id) return; // no user = no post
+    if (!user?._id) return;
 
     try {
       const formData = new FormData();
-      formData.append("authorId", user._id);
       formData.append("text", trimmed);
+      formData.append("location", location);    // ✅ send location
       if (file) {
         formData.append("media", file);
       }
@@ -137,12 +146,12 @@ const Home = () => {
       });
 
       const created = res.data.post;
-      // put new post at top
       setPosts((prev) => [created, ...prev]);
 
       setNewNote("");
+      setLocation("");                          // ✅ clear location
       setFile(null);
-      setFileInputKey((k) => k + 1); // clears file input
+      setFileInputKey((k) => k + 1);
     } catch (err) {
       console.error("Create post error:", err);
       alert("Error creating post");
@@ -154,7 +163,6 @@ const Home = () => {
     setFile(selected || null);
   };
 
-  // always show @username only
   const displayName = `@${user?.username || "user"}`;
 
   return (
@@ -165,10 +173,8 @@ const Home = () => {
       <div className="home-overlay" />
 
       <div className="home-inner">
-        {/* Shared Navbar */}
         <Navbar />
 
-        {/* Main content */}
         <main className="home-content">
           {/* Compose card */}
           <section className="home-compose-wrapper">
@@ -186,7 +192,6 @@ const Home = () => {
                   )}
                 </div>
 
-                {/* optional: clicking your own name goes to /profile */}
                 <span
                   className="home-compose-username"
                   style={{ cursor: "pointer" }}
@@ -201,6 +206,15 @@ const Home = () => {
                 placeholder="Share a note, picture, or video with everyone..."
                 value={newNote}
                 onChange={(e) => setNewNote(e.target.value)}
+              />
+
+              {/* ✅ Location input (optional) */}
+              <input
+                type="text"
+                className="home-compose-location"
+                placeholder="Add location (optional)"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
               />
 
               <div className="home-compose-footer">
@@ -253,6 +267,10 @@ const Home = () => {
                 const isAuthor =
                   user && post.author && post.author._id === user._id;
 
+                const hasLocation =
+                  post.location && post.location.trim() !== "";
+                const createdLabel = formatDateTime(post.createdAt);
+
                 return (
                   <article key={post._id} className="home-note-card">
                     <header className="home-note-header">
@@ -268,18 +286,32 @@ const Home = () => {
                         )}
                       </div>
 
-                      {/* username clickable to /u/:username */}
-                      <span
-                        className="home-note-username"
-                        style={{ cursor: "pointer" }}
-                        onClick={() => {
-                          if (post.author?.username) {
-                            navigate(`/u/${post.author.username}`);
-                          }
-                        }}
-                      >
-                        @{post.author?.username || "user"}
-                      </span>
+                      <div className="home-note-header-text">
+                        {/* username clickable to /u/:username */}
+                        <span
+                          className="home-note-username"
+                          style={{ cursor: "pointer" }}
+                          onClick={() => {
+                            if (post.author?.username) {
+                              navigate(`/u/${post.author.username}`);
+                            }
+                          }}
+                        >
+                          @{post.author?.username || "user"}
+                        </span>
+
+                        {(hasLocation || createdLabel) && (
+                          <span className="home-note-meta">
+                            {hasLocation && (
+                              <>
+                                📍 {post.location}
+                                {createdLabel && " · "}
+                              </>
+                            )}
+                            {createdLabel}
+                          </span>
+                        )}
+                      </div>
                     </header>
 
                     {post.mediaUrl && (
@@ -295,6 +327,12 @@ const Home = () => {
                             src={post.mediaUrl}
                             alt="User upload"
                             className="home-note-image"
+                            onClick={() =>
+                              setImageModal({
+                                open: true,
+                                url: post.mediaUrl,
+                              })
+                            }
                           />
                         )}
                       </div>
@@ -390,6 +428,32 @@ const Home = () => {
           </section>
         </main>
       </div>
+
+      {/* fullscreen image modal */}
+      {imageModal.open && (
+        <div
+          className="image-modal-backdrop"
+          onClick={() => setImageModal({ open: false, url: "" })}
+        >
+          <div
+            className="image-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={imageModal.url}
+              alt="Full"
+              className="image-modal-img"
+            />
+            <button
+              className="image-modal-close"
+              type="button"
+              onClick={() => setImageModal({ open: false, url: "" })}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

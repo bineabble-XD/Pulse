@@ -19,6 +19,28 @@ const Profile = () => {
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [error, setError] = useState("");
 
+  // fullscreen image modal
+  const [imageModal, setImageModal] = useState({
+    open: false,
+    url: "",
+  });
+
+  // following list modal
+  const [followingModal, setFollowingModal] = useState({
+    open: false,
+    loading: false,
+    users: [],
+    error: "",
+  });
+
+  // followers list modal
+  const [followersModal, setFollowersModal] = useState({
+    open: false,
+    loading: false,
+    users: [],
+    error: "",
+  });
+
   // per-post comment input values
   const [commentInputs, setCommentInputs] = useState({});
 
@@ -64,11 +86,11 @@ const Profile = () => {
     const previewUrl = URL.createObjectURL(selected);
     setLocalPreview(previewUrl);
 
-    // send to backend via Redux thunk
+    // send to backend via Redux thunk (will include JWT)
     dispatch(updateProfilePic(selected));
   };
 
-  // 🔥 Delete a post
+  // 🔥 Delete a post (no authorId body – backend uses token)
   const handleDeletePost = async (postId) => {
     if (!user?._id) return;
 
@@ -76,9 +98,7 @@ const Profile = () => {
     if (!confirmDelete) return;
 
     try {
-      await axios.delete(`${API_BASE}/posts/${postId}`, {
-        data: { authorId: user._id },
-      });
+      await axios.delete(`${API_BASE}/posts/${postId}`);
 
       setPosts((prev) => prev.filter((p) => p._id !== postId));
     } catch (err) {
@@ -87,14 +107,15 @@ const Profile = () => {
     }
   };
 
-  // 👍 LIKE / UNLIKE
+  // 👍 LIKE / UNLIKE (no userId body – backend uses token)
   const handleToggleLike = async (postId) => {
     if (!user?._id) return;
 
     try {
-      const res = await axios.post(`${API_BASE}/posts/${postId}/like`, {
-        userId: user._id,
-      });
+      const res = await axios.post(
+        `${API_BASE}/posts/${postId}/like`,
+        {}
+      );
 
       const updated = res.data.post;
       setPosts((prev) =>
@@ -114,7 +135,7 @@ const Profile = () => {
     }));
   };
 
-  // 💬 submit comment
+  // 💬 submit comment (only text – backend uses token)
   const handleAddComment = async (postId) => {
     if (!user?._id) return;
 
@@ -124,10 +145,7 @@ const Profile = () => {
     try {
       const res = await axios.post(
         `${API_BASE}/posts/${postId}/comment`,
-        {
-          userId: user._id,
-          text,
-        }
+        { text }
       );
 
       const updated = res.data.post;
@@ -147,11 +165,85 @@ const Profile = () => {
     }
   };
 
+  // 🔥 open following list modal (JWT protected)
+  const handleOpenFollowing = async () => {
+    if (!user?._id) return;
+
+    setFollowingModal({
+      open: true,
+      loading: true,
+      users: [],
+      error: "",
+    });
+
+    try {
+      const res = await axios.get(
+        `${API_BASE}/users/${user._id}/following-list`
+      );
+      setFollowingModal((prev) => ({
+        ...prev,
+        loading: false,
+        users: res.data || [],
+      }));
+    } catch (err) {
+      console.error("Following list error:", err);
+      setFollowingModal((prev) => ({
+        ...prev,
+        loading: false,
+        error: "Error loading following list",
+      }));
+    }
+  };
+
+  const handleCloseFollowing = () => {
+    setFollowingModal((prev) => ({
+      ...prev,
+      open: false,
+    }));
+  };
+
+  // 🔥 open followers list modal (JWT protected)
+  const handleOpenFollowers = async () => {
+    if (!user?._id) return;
+
+    setFollowersModal({
+      open: true,
+      loading: true,
+      users: [],
+      error: "",
+    });
+
+    try {
+      const res = await axios.get(
+        `${API_BASE}/users/${user._id}/followers-list`
+      );
+
+      setFollowersModal((prev) => ({
+        ...prev,
+        loading: false,
+        users: res.data || [],
+      }));
+    } catch (err) {
+      console.error("Followers list error:", err);
+      setFollowersModal((prev) => ({
+        ...prev,
+        loading: false,
+        error: "Error loading followers",
+      }));
+    }
+  };
+
+  const handleCloseFollowers = () => {
+    setFollowersModal((prev) => ({
+      ...prev,
+      open: false,
+    }));
+  };
+
   const displayPic = localPreview || user?.profilePic || "";
   const username = user?.username || "user";
 
   const stats = {
-    id: user?._id || "—",
     followers: user?.followers?.length || 0,
     following: user?.following?.length || 0,
     posts: posts.length,
@@ -208,22 +300,28 @@ const Profile = () => {
             </div>
 
             <div className="profile-stats">
-              <div className="profile-stat-row">
-                <span className="profile-stat-label">ID:</span>
-                <span className="profile-stat-pill">{stats.id}</span>
-              </div>
-              <div className="profile-stat-row">
+              <div
+                className="profile-stat-row profile-stat-row--clickable"
+                onClick={handleOpenFollowers}
+                style={{ cursor: "pointer" }}
+              >
                 <span className="profile-stat-label">Followers</span>
                 <span className="profile-stat-pill">
                   {stats.followers}
                 </span>
               </div>
-              <div className="profile-stat-row">
+
+              <div
+                className="profile-stat-row profile-stat-row--clickable"
+                onClick={handleOpenFollowing}
+                style={{ cursor: "pointer" }}
+              >
                 <span className="profile-stat-label">Following</span>
                 <span className="profile-stat-pill">
                   {stats.following}
                 </span>
               </div>
+
               <div className="profile-stat-row">
                 <span className="profile-stat-label">Posts</span>
                 <span className="profile-stat-pill">
@@ -263,9 +361,7 @@ const Profile = () => {
                       <div className="profile-post-avatar">
                         {post.author?.profilePic || displayPic ? (
                           <img
-                            src={
-                              post.author?.profilePic || displayPic
-                            }
+                            src={post.author?.profilePic || displayPic}
                             alt="Profile"
                             className="profile-post-avatar-image"
                           />
@@ -295,6 +391,12 @@ const Profile = () => {
                             src={post.mediaUrl}
                             alt="Post"
                             className="profile-post-image"
+                            onClick={() =>
+                              setImageModal({
+                                open: true,
+                                url: post.mediaUrl,
+                              })
+                            }
                           />
                         )}
                       </div>
@@ -318,11 +420,9 @@ const Profile = () => {
                       <button
                         className="profile-post-icon-btn"
                         aria-label="Comment"
-                        onClick={() => {
-                          // focus handled by user typing, this is just UI
-                        }}
                       >
-                        💬 {comments.length > 0 && (
+                        💬{" "}
+                        {comments.length > 0 && (
                           <span>{comments.length}</span>
                         )}
                       </button>
@@ -341,7 +441,6 @@ const Profile = () => {
                     <div className="profile-post-comments">
                       {comments.length > 0 && (
                         <div className="profile-post-comments-list">
-                          {/* show all or last few */}
                           {comments.map((c) => (
                             <div
                               key={c._id || c.createdAt}
@@ -351,7 +450,7 @@ const Profile = () => {
                                 @{c.author?.username || "user"}
                               </span>
                               <span className="profile-post-comment-text">
-                                  {" "}
+                                {" "}
                                 {c.text}
                               </span>
                             </div>
@@ -388,6 +487,158 @@ const Profile = () => {
           </section>
         </main>
       </div>
+
+      {/* 🔍 FULLSCREEN IMAGE MODAL */}
+      {imageModal.open && (
+        <div
+          className="image-modal-backdrop"
+          onClick={() => setImageModal({ open: false, url: "" })}
+        >
+          <div
+            className="image-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={imageModal.url}
+              alt="Full"
+              className="image-modal-img"
+            />
+            <button
+              className="image-modal-close"
+              type="button"
+              onClick={() => setImageModal({ open: false, url: "" })}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 👥 FOLLOWING LIST MODAL */}
+      {followingModal.open && (
+        <div
+          className="follow-modal-backdrop"
+          onClick={handleCloseFollowing}
+        >
+          <div
+            className="follow-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="follow-modal-header">
+              <h3>Following</h3>
+              <button
+                className="follow-modal-close"
+                type="button"
+                onClick={handleCloseFollowing}
+              >
+                ✕
+              </button>
+            </div>
+
+            {followingModal.loading ? (
+              <p className="follow-modal-text">Loading...</p>
+            ) : followingModal.error ? (
+              <p className="follow-modal-text">
+                {followingModal.error}
+              </p>
+            ) : followingModal.users.length === 0 ? (
+              <p className="follow-modal-text">
+                You’re not following anyone yet.
+              </p>
+            ) : (
+              <ul className="follow-modal-list">
+                {followingModal.users.map((u) => (
+                  <li key={u._id} className="follow-modal-item">
+                    <div className="follow-modal-avatar">
+                      {u.profilePic ? (
+                        <img
+                          src={u.profilePic}
+                          alt={u.username}
+                          className="follow-modal-avatar-image"
+                        />
+                      ) : (
+                        "👤"
+                      )}
+                    </div>
+                    <div className="follow-modal-info">
+                      <span className="follow-modal-username">
+                        @{u.username}
+                      </span>
+                      {u.fname && u.lname && (
+                        <span className="follow-modal-name">
+                          <br /> {u.fname} {u.lname}
+                        </span>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 👥 FOLLOWERS LIST MODAL */}
+      {followersModal.open && (
+        <div
+          className="follow-modal-backdrop"
+          onClick={handleCloseFollowers}
+        >
+          <div
+            className="follow-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="follow-modal-header">
+              <h3>Followers</h3>
+              <button
+                className="follow-modal-close"
+                type="button"
+                onClick={handleCloseFollowers}
+              >
+                ✕
+              </button>
+            </div>
+
+            {followersModal.loading ? (
+              <p className="follow-modal-text">Loading...</p>
+            ) : followersModal.error ? (
+              <p className="follow-modal-text">
+                {followersModal.error}
+              </p>
+            ) : followersModal.users.length === 0 ? (
+              <p className="follow-modal-text">No followers yet.</p>
+            ) : (
+              <ul className="follow-modal-list">
+                {followersModal.users.map((u) => (
+                  <li key={u._id} className="follow-modal-item">
+                    <div className="follow-modal-avatar">
+                      {u.profilePic ? (
+                        <img
+                          src={u.profilePic}
+                          alt={u.username}
+                          className="follow-modal-avatar-image"
+                        />
+                      ) : (
+                        "👤"
+                      )}
+                    </div>
+                    <div className="follow-modal-info">
+                      <span className="follow-modal-username">
+                        @{u.username}
+                      </span>
+                      {u.fname && u.lname && (
+                        <span className="follow-modal-name">
+                          <br /> {u.fname} {u.lname}
+                        </span>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

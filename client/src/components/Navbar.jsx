@@ -27,6 +27,7 @@ const Navbar = () => {
       </div>
 
       <nav className="home-nav">
+        {/* HOME */}
         <button
           className={`home-nav-link ${
             isActive("/home") ? "home-nav-link--active" : ""
@@ -36,6 +37,17 @@ const Navbar = () => {
           HOME
         </button>
 
+        {/* FOLLOWING — NEW */}
+        <button
+          className={`home-nav-link ${
+            isActive("/following") ? "home-nav-link--active" : ""
+          }`}
+          onClick={() => navigate("/following")}
+        >
+          FOLLOWING
+        </button>
+
+        {/* PROFILE (non-admin) */}
         {!isAdmin && (
           <button
             className={`home-nav-link ${
@@ -47,6 +59,7 @@ const Navbar = () => {
           </button>
         )}
 
+        {/* ADMIN PANEL */}
         {isAdmin && (
           <button
             className={`home-nav-link ${
@@ -58,6 +71,7 @@ const Navbar = () => {
           </button>
         )}
 
+        {/* LOGOUT */}
         <button
           className="home-nav-link home-nav-link--danger"
           onClick={handleLogout}
