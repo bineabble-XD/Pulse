@@ -707,3 +707,41 @@ app.get("/users/:id/followers-list", authMiddleware, async (req, res) => {
       .json({ message: "Error fetching followers list" });
   }
 });
+
+
+app.put("/posts/:id", authMiddleware, async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const currentUserId = req.user.userId;
+    const { text, location } = req.body;
+
+    const post = await PostModel.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    if (post.author.toString() !== currentUserId) {
+      return res
+        .status(403)
+        .json({ message: "Not allowed to edit this post" });
+    }
+
+    if (typeof text === "string") post.text = text;
+    if (typeof location === "string") post.location = location;
+
+    await post.save();
+
+    const populated = await PostModel.findById(post._id)
+      .populate("author", "username fname lname profilePic")
+      .populate("comments.author", "username fname lname profilePic");
+
+    return res.json({
+      message: "Post updated",
+      post: populated,
+    });
+  } catch (err) {
+    console.error("Update post error:", err);
+    return res.status(500).json({ message: "Error updating post" });
+  }
+});
+
