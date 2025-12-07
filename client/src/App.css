@@ -42,7 +42,7 @@
 }
 
 
-/* ===== TOP BAR (Used by all pages) ===== */
+/* ===== TOP BAR (Used by all pages that need it) ===== */
 
 .top-bar {
   width: 100%;
@@ -304,6 +304,7 @@
   font-size: 13px;
   font-weight: 500;
 }
+
 
 /* =======================
    ADMIN PAGE
@@ -595,6 +596,7 @@
   transform: translateY(1px) scale(0.98);
 }
 
+
 /* =======================
    PROFILE PAGE
    ======================= */
@@ -860,6 +862,19 @@
   transform: translateY(-1px);
 }
 
+.profile-post-media {
+  margin-top: 0.75rem;
+}
+
+.profile-post-image,
+.profile-post-video {
+  width: 100%;
+  max-height: 400px;
+  object-fit: cover;
+  border-radius: 16px;
+  display: block;
+}
+
 /* Responsive */
 
 @media (max-width: 960px) {
@@ -882,8 +897,9 @@
   }
 }
 
+
 /* =======================
-   HOME PAGE
+   HOME PAGE (modern)
    ======================= */
 
 .home-page {
@@ -897,16 +913,8 @@
     "Segoe UI", sans-serif;
 }
 
-.home-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    180deg,
-    rgba(0, 0, 0, 0.25) 0%,
-    rgba(0, 0, 0, 0.35) 45%,
-    rgba(0, 0, 0, 0.55) 100%
-  );
-}
+
+
 
 
 
@@ -915,14 +923,18 @@
   z-index: 1;
 }
 
-/* Top bar */
+/* Optional top bar for home (if you use it) */
 
 .home-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 18px 48px;
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.9), rgba(12, 12, 12, 0.9));
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.9),
+    rgba(12, 12, 12, 0.9)
+  );
 }
 
 .home-logo-wrap {
@@ -1012,13 +1024,17 @@
 .home-compose-card {
   width: 100%;
   max-width: 780px;
-  background: rgba(10, 10, 10, 0.9);
+  background:
+    radial-gradient(circle at top left, rgba(255, 233, 0, 0.14), transparent 55%),
+    rgba(10, 10, 10, 0.96);
   border-radius: 30px;
   padding: 20px 22px 18px;
-  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.9);
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.95);
   display: flex;
   flex-direction: column;
   gap: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
 }
 
 .home-compose-header {
@@ -1043,6 +1059,8 @@
   font-size: 14px;
 }
 
+/* textarea */
+
 .home-compose-input {
   margin-top: 4px;
   width: 100%;
@@ -1053,14 +1071,34 @@
   outline: none;
   padding: 12px 14px;
   font-size: 13px;
-  background: #181818;
+  background: #111827;
   color: #ffffff;
-  box-shadow: inset 0 0 0 1px #333333;
+  box-shadow: inset 0 0 0 1px #1f2937;
 }
 
 .home-compose-input::placeholder {
-  color: #888888;
+  color: #6b7280;
 }
+
+/* location input */
+
+.home-compose-location {
+  width: 100%;
+  border-radius: 999px;
+  border: none;
+  outline: none;
+  padding: 8px 14px;
+  font-size: 12px;
+  background: #020617;
+  color: #e5e7eb;
+  box-shadow: inset 0 0 0 1px #1f2937;
+}
+
+.home-compose-location::placeholder {
+  color: #6b7280;
+}
+
+/* footer */
 
 .home-compose-footer {
   margin-top: 6px;
@@ -1082,13 +1120,13 @@
   position: relative;
   overflow: hidden;
   border-radius: 999px;
-  background: #222222;
+  background: #020617;
   padding: 7px 14px;
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   cursor: pointer;
-  box-shadow: 0 0 0 1px #444444;
+  box-shadow: 0 0 0 1px #1f2937;
 }
 
 .home-file-label-text {
@@ -1110,6 +1148,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* POST button */
 
 .home-compose-btn {
   border: none;
@@ -1136,23 +1176,38 @@
   box-shadow: 0 8px 18px rgba(255, 230, 0, 0.6);
 }
 
-/* Notes feed */
+
+/* ===== NOTES FEED / POST CARDS ===== */
 
 .home-feed {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 22px;
+  align-items: flex-start;
 }
 
 .home-note-card {
-  background: rgba(10, 10, 10, 0.9);
-  border-radius: 26px;
-  padding: 18px 18px 16px;
-  box-shadow: 0 22px 40px rgba(0, 0, 0, 0.9);
+  background:
+    radial-gradient(circle at top left, rgba(255, 233, 0, 0.18), transparent 55%),
+    rgba(10, 10, 10, 0.96);
+  border-radius: 22px;
+  padding: 16px 16px 14px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.95);
   display: flex;
   flex-direction: column;
   gap: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(10px);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
+
+.home-note-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 26px 60px rgba(0, 0, 0, 1);
+  border-color: rgba(255, 230, 0, 0.35);
+}
+
+/* header */
 
 .home-note-header {
   display: flex;
@@ -1161,14 +1216,35 @@
 }
 
 .home-note-avatar {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 999px;
   background: #111111;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 16px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.home-note-avatar-image {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.home-note-header-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.home-note-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
 }
 
 .home-note-username {
@@ -1176,54 +1252,223 @@
   font-size: 13px;
 }
 
+/* meta row: location + time */
+.home-note-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-left: 4px;
+}
+
+.home-note-meta-location {
+  font-weight: 500;
+}
+
+.home-note-meta-sep {
+  opacity: 0.6;
+}
+
+.home-note-meta-time {
+  opacity: 0.85;
+}
+
+/* media */
+
 .home-note-media {
   margin-top: 4px;
-  border-radius: 18px;
+  border-radius: 16px;
   overflow: hidden;
   background: #000000;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.85);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.95);
 }
 
 .home-note-image,
 .home-note-video {
   display: block;
   width: 100%;
-  height: 180px;
+  max-height: 260px;
   object-fit: cover;
 }
+
+/* text */
 
 .home-note-text {
   font-size: 12px;
   line-height: 1.5;
-  color: #e0e0e0;
+  color: #e5e7eb;
+  margin-top: 2px;
 }
 
-.home-note-footer {
+/* EDIT MODE */
+
+.home-note-edit {
   margin-top: 4px;
   display: flex;
-  gap: 10px;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.home-note-edit-input {
+  width: 100%;
+  min-height: 80px;
+  border-radius: 16px;
+  border: none;
+  outline: none;
+  padding: 8px 10px;
+  font-size: 12px;
+  background: #020617;
+  color: #f9fafb;
+  box-shadow: inset 0 0 0 1px #1f2937;
+  resize: vertical;
+}
+
+.home-note-edit-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.home-note-edit-save,
+.home-note-edit-cancel {
+  border-radius: 999px;
+  border: none;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.home-note-edit-save {
+  background: #22c55e;
+  color: #000;
+}
+
+.home-note-edit-cancel {
+  background: #111827;
+  color: #e5e7eb;
+}
+
+/* footer buttons */
+
+.home-note-footer {
+  margin-top: 6px;
+  display: flex;
+  gap: 8px;
 }
 
 .home-note-icon-btn {
   border: none;
-  background: transparent;
-  color: #ffffff;
+  background: rgba(255, 255, 255, 0.02);
+  color: #f9fafb;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 13px;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  padding: 2px 4px;
-  opacity: 0.8;
-  transition: opacity 0.15s ease, transform 0.1s ease;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  opacity: 0.85;
+  box-shadow: 0 0 0 1px rgba(31, 41, 55, 0.7);
+  transition: opacity 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease,
+    background 0.15s ease;
 }
 
 .home-note-icon-btn:hover {
   opacity: 1;
   transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.8);
+  background: rgba(255, 255, 255, 0.05);
 }
 
-/* Responsive */
+.home-note-icon-btn--active {
+  background: rgba(252, 211, 77, 0.12);
+  box-shadow: 0 0 0 1px rgba(250, 204, 21, 0.8);
+}
+
+.home-note-icon-btn--danger {
+  color: #fecaca;
+  box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.8);
+}
+
+.home-note-icon-count {
+  font-size: 0.75rem;
+  color: #e5e7eb;
+}
+
+/* comments */
+
+.home-post-comments {
+  margin-top: 0.75rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.home-post-comments-list {
+  max-height: 150px;
+  overflow-y: auto;
+  margin-bottom: 0.5rem;
+}
+
+.home-post-comment {
+  font-size: 0.8rem;
+  color: #f5f5f5;
+  margin-bottom: 0.25rem;
+}
+
+.home-post-comment-author {
+  font-weight: 600;
+  margin-right: 0.25rem;
+}
+
+.home-post-comment-input-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.3rem;
+}
+
+.home-post-comment-input {
+  flex: 1;
+  border-radius: 999px;
+  border: none;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+  background: #111827;
+  color: #f9fafb;
+  box-shadow: inset 0 0 0 1px #1f2937;
+}
+
+.home-post-comment-input::placeholder {
+  color: #6b7280;
+}
+
+.home-post-comment-send {
+  border-radius: 999px;
+  border: none;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: #facc15;
+  color: #000000;
+  box-shadow: 0 10px 24px rgba(250, 204, 21, 0.8);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.home-post-comment-send:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 32px rgba(250, 204, 21, 1);
+}
+
+.home-post-comment-send:active {
+  transform: translateY(1px) scale(0.97);
+  box-shadow: 0 6px 16px rgba(250, 204, 21, 0.8);
+}
+
+/* responsive tweaks for feed */
 
 @media (max-width: 1024px) {
   .home-feed {
@@ -1236,10 +1481,6 @@
 }
 
 @media (max-width: 720px) {
-  .home-header {
-    padding-inline: 20px;
-  }
-
   .home-content {
     padding: 24px 20px 40px;
   }
@@ -1252,6 +1493,7 @@
     max-width: 100%;
   }
 }
+
 
 /* =======================
    RESET PASSWORD PAGE
@@ -1402,11 +1644,13 @@
 }
 
 
+/* ===== SHARED AVATARS, MODALS, FOLLOW LIST, ETC ===== */
+
 .profile-avatar-image {
-  width: 140px;           /* adjust the size you want */
+  width: 140px;
   height: 140px;
-  border-radius: 50%;     /* THIS makes it a perfect circle */
-  object-fit: cover;      /* zoom + crop image to fill circle */
+  border-radius: 50%;
+  object-fit: cover;
   border: 3px solid white;
 }
 
@@ -1424,86 +1668,7 @@
   object-fit: cover;
 }
 
-
-.home-note-avatar-image {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.home-post-comments {
-  margin-top: 0.75rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.home-post-comments-list {
-  max-height: 150px;
-  overflow-y: auto;
-  margin-bottom: 0.5rem;
-}
-
-.home-post-comment {
-  font-size: 0.8rem;
-  color: #f5f5f5;
-  margin-bottom: 0.25rem;
-}
-
-.home-post-comment-author {
-  font-weight: 600;
-  margin-right: 0.25rem;
-}
-
-.home-post-comment-input-row {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.25rem;
-}
-
-.home-post-comment-input {
-  flex: 1;
-  border-radius: 999px;
-  border: none;
-  padding: 0.35rem 0.75rem;
-  font-size: 0.8rem;
-}
-
-.home-post-comment-send {
-  border-radius: 999px;
-  border: none;
-  padding: 0.35rem 0.9rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-
-.profile-post-media {
-  margin-top: 0.75rem;
-}
-
-.profile-post-image,
-.profile-post-video {
-  width: 100%;
-  max-height: 400px;
-  object-fit: cover;
-  border-radius: 16px;
-  display: block;
-}
-
-
-/* Thumbnail images in feed */
-.home-note-image,
-.profile-post-image {
-  width: 100%;
-  max-height: 260px;     /* smaller thumbnail height */
-  object-fit: contain;   /* show full image, just scaled down */
-  border-radius: 12px;
-  cursor: pointer;
-}
-
-/* Full-screen modal */
+/* Full-screen image modal */
 .image-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -1539,6 +1704,8 @@
   padding: 4px 10px;
   cursor: pointer;
 }
+
+/* Follow modal */
 
 .follow-modal-backdrop {
   position: fixed;
@@ -1620,6 +1787,8 @@
 .profile-stat-row--clickable .profile-stat-pill {
   text-decoration: underline;
 }
+
+/* extra meta line if you use it somewhere */
 
 .post-meta {
   display: flex;

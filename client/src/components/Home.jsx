@@ -6,6 +6,11 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
+// 🔹 icons
+import { FcLike } from "react-icons/fc";
+import { FaRegCommentDots } from "react-icons/fa";
+import { MdModeEdit, MdDeleteOutline } from "react-icons/md";
+
 const API_BASE = "http://localhost:6969";
 
 // 🔹 helper to format createdAt
@@ -28,7 +33,7 @@ const Home = () => {
 
   const [posts, setPosts] = useState([]);
   const [newNote, setNewNote] = useState("");
-  const [location, setLocation] = useState("");        // ✅ NEW: location state
+  const [location, setLocation] = useState(""); // location state
   const [file, setFile] = useState(null);
   const [fileInputKey, setFileInputKey] = useState(0);
   const [loadingFeed, setLoadingFeed] = useState(true);
@@ -38,6 +43,10 @@ const Home = () => {
     open: false,
     url: "",
   });
+
+  // 🔹 edit state
+  const [editingPostId, setEditingPostId] = useState(null);
+  const [editText, setEditText] = useState("");
 
   // DELETE post – no authorId in body, backend uses token
   const handleDeletePost = async (postId) => {
@@ -79,7 +88,7 @@ const Home = () => {
     }));
   };
 
-  // COMMENT submit – ✅ remove userId, backend uses JWT
+  // COMMENT submit – remove userId, backend uses JWT
   const handleAddComment = async (postId) => {
     if (!user?._id) return;
 
@@ -87,10 +96,9 @@ const Home = () => {
     if (!text) return;
 
     try {
-      const res = await axios.post(
-        `${API_BASE}/posts/${postId}/comment`,
-        { text }          // ✅ only send text
-      );
+      const res = await axios.post(`${API_BASE}/posts/${postId}/comment`, {
+        text,
+      });
 
       const updated = res.data.post;
 
@@ -105,6 +113,45 @@ const Home = () => {
     } catch (err) {
       console.error("Add comment error:", err);
       alert("Error adding comment");
+    }
+  };
+
+  // 🔹 start editing a post
+  const startEditingPost = (post) => {
+    if (!post || !post._id) return;
+    setEditingPostId(post._id);
+    setEditText(post.text || "");
+  };
+
+  // 🔹 cancel editing
+  const cancelEditingPost = () => {
+    setEditingPostId(null);
+    setEditText("");
+  };
+
+  // 🔹 save edited post (text only)
+  const handleSaveEdit = async (postId) => {
+    if (!user?._id) return;
+
+    const trimmed = (editText || "").trim();
+    // if (!trimmed) return; // uncomment to block empty edits
+
+    try {
+      const res = await axios.put(`${API_BASE}/posts/${postId}`, {
+        text: trimmed,
+      });
+
+      const updated = res.data.post;
+
+      setPosts((prev) =>
+        prev.map((p) => (p._id === updated._id ? updated : p))
+      );
+
+      setEditingPostId(null);
+      setEditText("");
+    } catch (err) {
+      console.error("Edit post error:", err);
+      alert("Error updating post");
     }
   };
 
@@ -125,7 +172,7 @@ const Home = () => {
     fetchDiscover();
   }, []);
 
-  // CREATE POST – ✅ send location
+  // CREATE POST – send location
   const handleSubmit = async (e) => {
     e.preventDefault();
     const trimmed = newNote.trim();
@@ -136,7 +183,7 @@ const Home = () => {
     try {
       const formData = new FormData();
       formData.append("text", trimmed);
-      formData.append("location", location);    // ✅ send location
+      formData.append("location", location);
       if (file) {
         formData.append("media", file);
       }
@@ -149,7 +196,7 @@ const Home = () => {
       setPosts((prev) => [created, ...prev]);
 
       setNewNote("");
-      setLocation("");                          // ✅ clear location
+      setLocation("");
       setFile(null);
       setFileInputKey((k) => k + 1);
     } catch (err) {
@@ -166,15 +213,10 @@ const Home = () => {
   const displayName = `@${user?.username || "user"}`;
 
   return (
-    <div
-      className="home-page"
-      style={{ backgroundImage: `url(${bgTexture})` }}
-    >
-      <div className="home-overlay" />
-
+    <div className="home-page" style={{ backgroundImage: `url(${bgTexture})` }}>
       <div className="home-inner">
         <Navbar />
-
+        
         <main className="home-content">
           {/* Compose card */}
           <section className="home-compose-wrapper">
@@ -208,7 +250,7 @@ const Home = () => {
                 onChange={(e) => setNewNote(e.target.value)}
               />
 
-              {/* ✅ Location input (optional) */}
+              {/* Location input (optional) */}
               <input
                 type="text"
                 className="home-compose-location"
@@ -270,6 +312,7 @@ const Home = () => {
                 const hasLocation =
                   post.location && post.location.trim() !== "";
                 const createdLabel = formatDateTime(post.createdAt);
+                const isEditing = editingPostId === post._id;
 
                 return (
                   <article key={post._id} className="home-note-card">
@@ -287,30 +330,40 @@ const Home = () => {
                       </div>
 
                       <div className="home-note-header-text">
-                        {/* username clickable to /u/:username */}
-                        <span
-                          className="home-note-username"
-                          style={{ cursor: "pointer" }}
-                          onClick={() => {
-                            if (post.author?.username) {
-                              navigate(`/u/${post.author.username}`);
-                            }
-                          }}
-                        >
-                          @{post.author?.username || "user"}
-                        </span>
-
-                        {(hasLocation || createdLabel) && (
-                          <span className="home-note-meta">
-                            {hasLocation && (
-                              <>
-                                📍 {post.location}
-                                {createdLabel && " · "}
-                              </>
-                            )}
-                            {createdLabel}
+                        <div className="home-note-header-top">
+                          {/* username clickable to /u/:username */}
+                          <span
+                            className="home-note-username"
+                            style={{ cursor: "pointer" }}
+                            onClick={() => {
+                              if (post.author?.username) {
+                                navigate(`/u/${post.author.username}`);
+                              }
+                            }}
+                          >
+                            @{post.author?.username || "user"}
                           </span>
-                        )}
+
+                          {(hasLocation || createdLabel) && (
+                            <span className="home-note-meta">
+                              {hasLocation && (
+                                <>
+                                  <span className="home-note-meta-location">
+                                    📍 {post.location}
+                                  </span>
+                                  {createdLabel && (
+                                    <span className="home-note-meta-sep">•</span>
+                                  )}
+                                </>
+                              )}
+                              {createdLabel && (
+                                <span className="home-note-meta-time">
+                                  {createdLabel}
+                                </span>
+                              )}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </header>
 
@@ -338,11 +391,39 @@ const Home = () => {
                       </div>
                     )}
 
-                    {post.text && (
+                    {/* TEXT / EDIT MODE */}
+                    {!isEditing && post.text && (
                       <p className="home-note-text">{post.text}</p>
                     )}
 
+                    {isEditing && (
+                      <div className="home-note-edit">
+                        <textarea
+                          className="home-note-edit-input"
+                          value={editText}
+                          onChange={(e) => setEditText(e.target.value)}
+                        />
+                        <div className="home-note-edit-actions">
+                          <button
+                            type="button"
+                            className="home-note-edit-save"
+                            onClick={() => handleSaveEdit(post._id)}
+                          >
+                            Save
+                          </button>
+                          <button
+                            type="button"
+                            className="home-note-edit-cancel"
+                            onClick={cancelEditingPost}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     <footer className="home-note-footer">
+                      {/* LIKE */}
                       <button
                         type="button"
                         className={`home-note-icon-btn ${
@@ -351,28 +432,49 @@ const Home = () => {
                         aria-label="Like"
                         onClick={() => handleToggleLike(post._id)}
                       >
-                        👍 {likeCount > 0 && <span>{likeCount}</span>}
+                        <FcLike size={18} />
+                        {likeCount > 0 && (
+                          <span className="home-note-icon-count">
+                            {likeCount}
+                          </span>
+                        )}
                       </button>
 
+                      {/* COMMENT */}
                       <button
                         type="button"
                         className="home-note-icon-btn"
                         aria-label="Comment"
                       >
-                        💬{" "}
+                        <FaRegCommentDots size={16} />
                         {comments.length > 0 && (
-                          <span>{comments.length}</span>
+                          <span className="home-note-icon-count">
+                            {comments.length}
+                          </span>
                         )}
                       </button>
 
+                      {/* EDIT & DELETE – author only */}
                       {isAuthor && (
-                        <button
-                          type="button"
-                          className="home-note-icon-btn home-note-icon-btn--danger"
-                          onClick={() => handleDeletePost(post._id)}
-                        >
-                          🗑️
-                        </button>
+                        <>
+                          <button
+                            type="button"
+                            className="home-note-icon-btn"
+                            aria-label="Edit post"
+                            onClick={() => startEditingPost(post)}
+                          >
+                            <MdModeEdit size={18} />
+                          </button>
+
+                          <button
+                            type="button"
+                            className="home-note-icon-btn home-note-icon-btn--danger"
+                            aria-label="Delete post"
+                            onClick={() => handleDeletePost(post._id)}
+                          >
+                            <MdDeleteOutline size={18} />
+                          </button>
+                        </>
                       )}
                     </footer>
 
@@ -405,10 +507,7 @@ const Home = () => {
                             placeholder="Add a comment..."
                             value={commentValue}
                             onChange={(e) =>
-                              handleCommentChange(
-                                post._id,
-                                e.target.value
-                              )
+                              handleCommentChange(post._id, e.target.value)
                             }
                           />
                           <button
@@ -439,11 +538,7 @@ const Home = () => {
             className="image-modal-content"
             onClick={(e) => e.stopPropagation()}
           >
-            <img
-              src={imageModal.url}
-              alt="Full"
-              className="image-modal-img"
-            />
+            <img src={imageModal.url} alt="Full" className="image-modal-img" />
             <button
               className="image-modal-close"
               type="button"

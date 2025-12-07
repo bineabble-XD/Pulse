@@ -1,5 +1,8 @@
 // src/components/PostCard.jsx
 import React from "react";
+import { FcLike } from "react-icons/fc";
+import { FaRegCommentDots } from "react-icons/fa";
+import { MdDeleteOutline } from "react-icons/md";
 
 const formatDateTime = (isoString) => {
   if (!isoString) return "";
@@ -7,7 +10,7 @@ const formatDateTime = (isoString) => {
   if (isNaN(d.getTime())) return "";
 
   const day = String(d.getDate()).padStart(2, "0");
-  const monthShort = d.toLocaleString("en", { month: "short" }); // Dec, Jan, etc.
+  const monthShort = d.toLocaleString("en", { month: "short" });
   const hours = String(d.getHours()).padStart(2, "0");
   const mins = String(d.getMinutes()).padStart(2, "0");
 
@@ -56,29 +59,33 @@ const PostCard = ({
         </div>
 
         <div className="home-note-header-text">
-          <span
-            className="home-note-username"
-            style={{ cursor: onUsernameClick ? "pointer" : "default" }}
-            onClick={() =>
-              onUsernameClick && post.author?.username
-                ? onUsernameClick(post.author.username)
-                : null
-            }
-          >
-            @{post.author?.username || "user"}
-          </span>
-
-          {(hasLocation || createdLabel) && (
-            <span className="home-note-meta">
-              {hasLocation && (
-                <>
-                  📍 {post.location}
-                  {createdLabel && " · "}
-                </>
-              )}
-              {createdLabel}
+          <div className="home-note-header-top">
+            <span
+              className="home-note-username"
+              style={{ cursor: onUsernameClick ? "pointer" : "default" }}
+              onClick={() =>
+                onUsernameClick && post.author?.username
+                  ? onUsernameClick(post.author.username)
+                  : null
+              }
+            >
+              @{post.author?.username || "user"}
             </span>
-          )}
+
+            {(hasLocation || createdLabel) && (
+              <span className="home-note-meta">
+                {hasLocation && (
+                  <>
+                    <span className="home-note-meta-location">
+                      📍 {post.location}
+                    </span>
+                    {createdLabel && <span className="home-note-meta-sep">•</span>}
+                  </>
+                )}
+                <span className="home-note-meta-time">{createdLabel}</span>
+              </span>
+            )}
+          </div>
         </div>
       </header>
 
@@ -115,7 +122,8 @@ const PostCard = ({
           aria-label="Like"
           onClick={() => onLike && onLike(post._id)}
         >
-          👍 {likeCount > 0 && <span>{likeCount}</span>}
+          <FcLike size={18} />
+          {likeCount > 0 && <span className="home-note-icon-count">{likeCount}</span>}
         </button>
 
         <button
@@ -123,7 +131,10 @@ const PostCard = ({
           className="home-note-icon-btn"
           aria-label="Comment"
         >
-          💬 {comments.length > 0 && <span>{comments.length}</span>}
+          <FaRegCommentDots size={16} />
+          {comments.length > 0 && (
+            <span className="home-note-icon-count">{comments.length}</span>
+          )}
         </button>
 
         {showDelete && isAuthor && (
@@ -132,7 +143,7 @@ const PostCard = ({
             className="home-note-icon-btn home-note-icon-btn--danger"
             onClick={() => onDelete && onDelete(post._id)}
           >
-            🗑️
+            <MdDeleteOutline size={18} />
           </button>
         )}
       </footer>
@@ -163,8 +174,7 @@ const PostCard = ({
               placeholder="Add a comment..."
               value={commentValue || ""}
               onChange={(e) =>
-                onCommentChange &&
-                onCommentChange(post._id, e.target.value)
+                onCommentChange && onCommentChange(post._id, e.target.value)
               }
             />
             <button
