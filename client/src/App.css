@@ -25,9 +25,9 @@
   background-image: url("./assets/5.png");
 }
 
-.home-bg {
+/*.home-bg {
   background-image: url("./assets/3.png");
-}
+}*/
 
 .profile-bg {
   background-image: url("./assets/6.png");
@@ -39,6 +39,13 @@
 
 .reset-bg {
   background-image: url("./assets/1.png");
+}
+
+.home-page {
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed;
 }
 
 

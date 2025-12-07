@@ -1,6 +1,6 @@
 // src/components/Following.jsx
 import React, { useEffect, useState } from "react";
-import bgTexture from "../assets/3.png";
+import bgTexture from "../assets/7.png";
 import Navbar from "./Navbar";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";

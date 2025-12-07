@@ -33,7 +33,14 @@ const Home = () => {
 
   const [posts, setPosts] = useState([]);
   const [newNote, setNewNote] = useState("");
-  const [location, setLocation] = useState(""); // location state
+
+  // 💬 location text (what you already had)
+  const [location, setLocation] = useState("");
+
+  // 📍 NEW: numeric coordinates
+  const [lat, setLat] = useState(null);
+  const [lon, setLon] = useState(null);
+
   const [file, setFile] = useState(null);
   const [fileInputKey, setFileInputKey] = useState(0);
   const [loadingFeed, setLoadingFeed] = useState(true);
@@ -155,6 +162,28 @@ const Home = () => {
     }
   };
 
+  // 🌍 NEW: detect current location and fill lat/lon + location text
+  const handleDetectLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setLat(latitude);
+        setLon(longitude);
+        // you can format this however you like
+        setLocation(`${latitude}, ${longitude}`);
+      },
+      (error) => {
+        console.error("Geolocation error:", error);
+        alert("Unable to retrieve your location.");
+      }
+    );
+  };
+
   // load DISCOVER feed (public)
   useEffect(() => {
     const fetchDiscover = async () => {
@@ -172,7 +201,7 @@ const Home = () => {
     fetchDiscover();
   }, []);
 
-  // CREATE POST – send location
+  // CREATE POST – send location + coordinates
   const handleSubmit = async (e) => {
     e.preventDefault();
     const trimmed = newNote.trim();
@@ -183,7 +212,9 @@ const Home = () => {
     try {
       const formData = new FormData();
       formData.append("text", trimmed);
-      formData.append("location", location);
+      formData.append("location", location || "");
+      if (lat != null) formData.append("latitude", lat);
+      if (lon != null) formData.append("longitude", lon);
       if (file) {
         formData.append("media", file);
       }
@@ -197,6 +228,8 @@ const Home = () => {
 
       setNewNote("");
       setLocation("");
+      setLat(null);
+      setLon(null);
       setFile(null);
       setFileInputKey((k) => k + 1);
     } catch (err) {
@@ -216,7 +249,7 @@ const Home = () => {
     <div className="home-page" style={{ backgroundImage: `url(${bgTexture})` }}>
       <div className="home-inner">
         <Navbar />
-        
+
         <main className="home-content">
           {/* Compose card */}
           <section className="home-compose-wrapper">
@@ -258,6 +291,31 @@ const Home = () => {
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
               />
+
+              {/* 📍 Button to auto-detect GPS */}
+              <button
+                type="button"
+                className="home-detect-location-btn"
+                onClick={handleDetectLocation}
+                style={{ marginTop: "6px" }}
+              >
+                Use My Current Location
+              </button>
+
+              {/* Optional Google Maps preview when coords are available */}
+              {lat != null && lon != null && (
+                <div style={{ marginTop: "10px", borderRadius: "12px", overflow: "hidden" }}>
+                  <iframe
+                    width="100%"
+                    height="250"
+                    src={`https://maps.google.com/maps?q=${lat},${lon}&output=embed`}
+                    title="Selected location"
+                    style={{ border: "0" }}
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  ></iframe>
+                </div>
+              )}
 
               <div className="home-compose-footer">
                 <div className="home-compose-left">
