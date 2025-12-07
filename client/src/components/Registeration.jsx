@@ -21,10 +21,10 @@ import { addUser } from "../features/PulseSlice";
 const API_BASE = "http://localhost:6969";
 
 const Registeration = () => {
-  // UseStates – same style as your reference
+  // form states
   const [name, setName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [username, setUsername] = useState(""); // 🔥 NEW
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [address, setAddress] = useState("");
@@ -32,8 +32,19 @@ const Registeration = () => {
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("");
 
-  const [usernameStatus, setUsernameStatus] = useState(null);
-  // null | "checking" | "ok" | "taken"
+  const [usernameStatus, setUsernameStatus] = useState(null); // null | "checking" | "ok" | "taken"
+
+  // 🔥 password validation state
+  const [passwordValidations, setPasswordValidations] = useState({
+    lower: false,
+    upper: false,
+    number: false,
+    special: false,
+    length: false,
+  });
+
+  // 🔥 popup state
+  const [showPasswordHints, setShowPasswordHints] = useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -45,6 +56,17 @@ const Registeration = () => {
   } = useForm({
     resolver: yupResolver(UserRegisterSchemaValidation),
   });
+
+  // 🔥 validate password according to rules
+  const validatePassword = (value) => {
+    setPasswordValidations({
+      lower: /[a-z]/.test(value),
+      upper: /[A-Z]/.test(value),
+      number: /[0-9]/.test(value),
+      special: /[^A-Za-z0-9]/.test(value),
+      length: value.length >= 8,
+    });
+  };
 
   // 🔥 check username availability
   const checkUsername = async (value) => {
@@ -81,7 +103,7 @@ const Registeration = () => {
       phnum: phoneNumber,
       age,
       gender,
-      username, // 🔥 send username to backend
+      username,
     };
 
     if (usernameStatus === "taken") {
@@ -100,7 +122,7 @@ const Registeration = () => {
 
   return (
     <div className="page register-bg register-page">
-      {/* top bar like landing page */}
+      {/* Top bar */}
       <header className="top-bar">
         <div className="brand-left">
           <img src={logo} alt="Pulse logo" className="brand-logo" />
@@ -112,8 +134,7 @@ const Registeration = () => {
         </Link>
       </header>
 
-      {/* center registration card */}
-      {/* 🔥 add paddingTop so form starts below header */}
+      {/* Center registration card */}
       <Container
         fluid
         className="register-container"
@@ -170,7 +191,6 @@ const Registeration = () => {
                   {errors.username?.message}
                 </p>
 
-                {/* availability status with visible colors */}
                 {usernameStatus === "checking" && (
                   <small style={{ color: "#cccccc" }}>
                     Checking username...
@@ -202,17 +222,107 @@ const Registeration = () => {
                 <p className="register-error">{errors.email?.message}</p>
               </FormGroup>
 
-              {/* PASSWORD */}
+              {/* PASSWORD + POPUP */}
               <FormGroup className="register-field">
                 <Label className="register-label">PASSWORD</Label>
-                <input
-                  type="password"
-                  className="form-control register-input"
-                  {...register("password", {
-                    value: password,
-                    onChange: (e) => setPassword(e.target.value),
-                  })}
-                />
+                <div style={{ position: "relative" }}>
+                  <input
+                    type="password"
+                    className="form-control register-input"
+                    {...register("password", {
+                      value: password,
+                      onChange: (e) => {
+                        setPassword(e.target.value);
+                        validatePassword(e.target.value);
+                      },
+                    })}
+                    onFocus={() => setShowPasswordHints(true)}
+                    onBlur={() => setShowPasswordHints(false)}
+                  />
+
+                  {showPasswordHints && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "100%",
+                        left: 0,
+                        marginTop: "6px",
+                        padding: "8px 10px",
+                        backgroundColor: "#fff",
+                        border: "1px solid #ddd",
+                        borderRadius: "6px",
+                        boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                        fontSize: "12px",
+                        zIndex: 10,
+                        minWidth: "250px",
+                      }}
+                    >
+                      <strong style={{ fontSize: "11px" }}>
+                        PASSWORD MUST CONTAIN:
+                      </strong>
+                      <ul
+                        style={{
+                          listStyle: "none",
+                          paddingLeft: 0,
+                          marginTop: "6px",
+                          marginBottom: 0,
+                        }}
+                      >
+                        <li
+                          style={{
+                            color: passwordValidations.lower
+                              ? "green"
+                              : "red",
+                          }}
+                        >
+                          {passwordValidations.lower ? "✔" : "✘"} At least one
+                          lowercase letter
+                        </li>
+                        <li
+                          style={{
+                            color: passwordValidations.upper
+                              ? "green"
+                              : "red",
+                          }}
+                        >
+                          {passwordValidations.upper ? "✔" : "✘"} At least one
+                          uppercase letter
+                        </li>
+                        <li
+                          style={{
+                            color: passwordValidations.number
+                              ? "green"
+                              : "red",
+                          }}
+                        >
+                          {passwordValidations.number ? "✔" : "✘"} At least one
+                          number
+                        </li>
+                        <li
+                          style={{
+                            color: passwordValidations.special
+                              ? "green"
+                              : "red",
+                          }}
+                        >
+                          {passwordValidations.special ? "✔" : "✘"} At least
+                          one special character
+                        </li>
+                        <li
+                          style={{
+                            color: passwordValidations.length
+                              ? "green"
+                              : "red",
+                          }}
+                        >
+                          {passwordValidations.length ? "✔" : "✘"} Minimum 8
+                          characters
+                        </li>
+                      </ul>
+                    </div>
+                  )}
+                </div>
+
                 <p className="register-error">
                   {errors.password?.message}
                 </p>

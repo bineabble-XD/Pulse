@@ -1,10 +1,12 @@
 // src/components/Profile.jsx
 import React, { useRef, useState, useEffect } from "react";
-import bgTexture from "../assets/4.png";
+import bgTexture from "../assets/6.png";  
+
 import Navbar from "./Navbar";
 import { useSelector, useDispatch } from "react-redux";
 import { updateProfilePic } from "../features/PulseSlice";
 import axios from "axios";
+import PostCard from "./PostCard"; // 🔥 use the same card style as Home
 
 const API_BASE = "http://localhost:6969";
 
@@ -331,7 +333,7 @@ const Profile = () => {
             </div>
           </section>
 
-          {/* Right column: your posts grid */}
+          {/* Right column: your posts (now using Home-style PostCard) */}
           <section className="profile-feed">
             {loadingPosts ? (
               <p className="profile-empty-text">Loading your posts...</p>
@@ -342,147 +344,22 @@ const Profile = () => {
                 You haven’t posted anything yet.
               </p>
             ) : (
-              posts.map((post) => {
-                const isAuthor =
-                  user && post.author && post.author._id === user._id;
-
-                const likeCount = post.likes?.length || 0;
-                const isLiked =
-                  user &&
-                  Array.isArray(post.likes) &&
-                  post.likes.some((id) => id === user._id);
-
-                const comments = post.comments || [];
-                const commentValue = commentInputs[post._id] || "";
-
-                return (
-                  <article key={post._id} className="profile-post-card">
-                    <header className="profile-post-header">
-                      <div className="profile-post-avatar">
-                        {post.author?.profilePic || displayPic ? (
-                          <img
-                            src={post.author?.profilePic || displayPic}
-                            alt="Profile"
-                            className="profile-post-avatar-image"
-                          />
-                        ) : (
-                          "👤"
-                        )}
-                      </div>
-                      <span className="profile-post-username">
-                        @{post.author?.username || username}
-                      </span>
-                    </header>
-
-                    {post.text && (
-                      <p className="profile-post-text">{post.text}</p>
-                    )}
-
-                    {post.mediaUrl && (
-                      <div className="profile-post-media">
-                        {post.mediaType === "video" ? (
-                          <video
-                            src={post.mediaUrl}
-                            controls
-                            className="profile-post-video"
-                          />
-                        ) : (
-                          <img
-                            src={post.mediaUrl}
-                            alt="Post"
-                            className="profile-post-image"
-                            onClick={() =>
-                              setImageModal({
-                                open: true,
-                                url: post.mediaUrl,
-                              })
-                            }
-                          />
-                        )}
-                      </div>
-                    )}
-
-                    <footer className="profile-post-footer">
-                      {/* LIKE BUTTON */}
-                      <button
-                        className={`profile-post-icon-btn ${
-                          isLiked
-                            ? "profile-post-icon-btn--active"
-                            : ""
-                        }`}
-                        aria-label="Like"
-                        onClick={() => handleToggleLike(post._id)}
-                      >
-                        👍 {likeCount > 0 && <span>{likeCount}</span>}
-                      </button>
-
-                      {/* COMMENT BUTTON (optional, decorative) */}
-                      <button
-                        className="profile-post-icon-btn"
-                        aria-label="Comment"
-                      >
-                        💬{" "}
-                        {comments.length > 0 && (
-                          <span>{comments.length}</span>
-                        )}
-                      </button>
-
-                      {isAuthor && (
-                        <button
-                          className="profile-post-icon-btn profile-post-icon-btn--danger"
-                          onClick={() => handleDeletePost(post._id)}
-                        >
-                          🗑️
-                        </button>
-                      )}
-                    </footer>
-
-                    {/* COMMENTS SECTION */}
-                    <div className="profile-post-comments">
-                      {comments.length > 0 && (
-                        <div className="profile-post-comments-list">
-                          {comments.map((c) => (
-                            <div
-                              key={c._id || c.createdAt}
-                              className="profile-post-comment"
-                            >
-                              <span className="profile-post-comment-author">
-                                @{c.author?.username || "user"}
-                              </span>
-                              <span className="profile-post-comment-text">
-                                {" "}
-                                {c.text}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      <div className="profile-post-comment-input-row">
-                        <input
-                          type="text"
-                          className="profile-post-comment-input"
-                          placeholder="Add a comment..."
-                          value={commentValue}
-                          onChange={(e) =>
-                            handleCommentChange(
-                              post._id,
-                              e.target.value
-                            )
-                          }
-                        />
-                        <button
-                          className="profile-post-comment-send"
-                          type="button"
-                          onClick={() => handleAddComment(post._id)}
-                        >
-                          SEND
-                        </button>
-                      </div>
-                    </div>
-                  </article>
-                );
-              })
+              posts.map((post) => (
+                <PostCard
+                  key={post._id}
+                  post={post}
+                  currentUser={user}
+                  onLike={handleToggleLike}
+                  onDelete={handleDeletePost}
+                  onAddComment={handleAddComment}
+                  onCommentChange={handleCommentChange}
+                  commentValue={commentInputs[post._id] || ""}
+                  onOpenImage={(url) =>
+                    setImageModal({ open: true, url })
+                  }
+                  showDelete={true} // show delete button for your own posts
+                />
+              ))
             )}
           </section>
         </main>

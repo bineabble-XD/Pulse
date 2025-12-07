@@ -121,6 +121,10 @@
 
 .register-page {
   position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 80px; /* prevent header overlap */
 }
 
 .register-main {
@@ -132,25 +136,29 @@
   justify-content: center;
 }
 
+/* Title centered, bigger */
 .register-title {
   color: #ffe92c;
-  font-size: 38px;
+  font-size: 44px;        /* bigger title */
   font-weight: 900;
+  text-align: center;
   letter-spacing: 2px;
-  margin-bottom: 24px;
-  text-transform: uppercase;
+  margin-bottom: 25px;
 }
 
-/* black rounded card */
+/* Larger, centered card */
 .register-card {
   background: rgba(0, 0, 0, 0.85);
-  padding: 30px 40px 36px;
-  border-radius: 32px;
-  width: 420px;
-  max-width: 90%;
+  padding: 40px 50px;
+  border-radius: 35px;
+
+  width: 550px;          /* 🔥 wider frame */
+  max-width: 90%;        /* responsive */
+  min-height: 650px;     /* 🔥 taller so all fields fit cleanly */
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
+  margin-top: 40px;      /* push down slightly from header */
 }
 
 /* fields */
@@ -1805,3 +1813,26 @@
 .post-time {
   opacity: 0.8;
 }
+
+.profile-page {
+  min-height: 100vh;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  color: #ffffff;
+  font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+}
+.profile-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.25) 0%,
+    rgba(0, 0, 0, 0.40) 50%,
+    rgba(0, 0, 0, 0.55) 100%
+  );
+  pointer-events: none;
+}
+
