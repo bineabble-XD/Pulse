@@ -137,15 +137,28 @@ const PostCard = ({
           )}
         </button>
 
-        {showDelete && isAuthor && (
-          <button
-            type="button"
-            className="home-note-icon-btn home-note-icon-btn--danger"
-            onClick={() => onDelete && onDelete(post._id)}
-          >
-            <MdDeleteOutline size={18} />
-          </button>
-        )}
+        {/* EDIT */}
+{isAuthor && onEdit && (
+  <button
+    type="button"
+    className="home-note-icon-btn"
+    onClick={() => onEdit(post)}
+  >
+    <MdModeEdit size={18} />
+  </button>
+)}
+
+{/* DELETE */}
+{showDelete && isAuthor && (
+  <button
+    type="button"
+    className="home-note-icon-btn home-note-icon-btn--danger"
+    onClick={() => onDelete && onDelete(post._id)}
+  >
+    <MdDeleteOutline size={18} />
+  </button>
+)}
+
       </footer>
 
       {/* comments */}
