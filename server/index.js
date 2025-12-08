@@ -253,7 +253,7 @@ app.post(
   upload.single("media"),
   async (req, res) => {
     try {
-      const { text, location } = req.body;   // 👈 now reading location
+      const { text, location, latitude, longitude } = req.body;
       const authorId = req.user.userId;
 
       if (!authorId) {
@@ -271,7 +271,9 @@ app.post(
       const post = await PostModel.create({
         author: authorId,
         text: text || "",
-        location: location || "",   // 👈 save location here
+        location: location || "",
+        latitude: latitude || null,       // ⬅️ NEW
+        longitude: longitude || null,     // ⬅️ NEW
         mediaUrl,
         mediaType,
       });
@@ -281,15 +283,17 @@ app.post(
         "username fname lname profilePic"
       );
 
-      return res
-        .status(201)
-        .json({ message: "Post created", post: populated });
+      return res.status(201).json({
+        message: "Post created",
+        post: populated,
+      });
     } catch (err) {
       console.error("Create post error:", err);
       return res.status(500).json({ message: "Error creating post" });
     }
   }
 );
+
 
 
 // DELETE /posts/:id  -> only author can delete (author from token)
@@ -745,3 +749,62 @@ app.put("/posts/:id", authMiddleware, async (req, res) => {
   }
 });
 
+// DELETE /users/:id -> admin only, removes user and their posts
+app.delete("/users/:id", authMiddleware, async (req, res) => {
+  try {
+    // only admins can drop users
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Admins only" });
+    }
+
+    const userId = req.params.id;
+
+    // check user exists
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // delete all posts from this user (optional but usually desired)
+    await PostModel.deleteMany({ author: userId });
+
+    // delete the user
+    await UserModel.findByIdAndDelete(userId);
+
+    return res.json({ message: "User and related posts deleted" });
+  } catch (err) {
+    console.error("Delete user error:", err);
+    return res.status(500).json({ message: "Error deleting user" });
+  }
+});
+
+// POST /reset-password  { email, newPassword }
+app.post("/reset-password", async (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+
+    if (!email || !newPassword) {
+      return res
+        .status(400)
+        .json({ message: "Email and new password are required" });
+    }
+
+    const user = await UserModel.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User with this email not found" });
+    }
+
+    // hash the new password
+    const hashed = await bcrypt.hash(newPassword, 10);
+
+    user.password = hashed;
+    await user.save();
+
+    return res.json({ message: "Password updated successfully" });
+  } catch (err) {
+    console.error("Reset password error:", err);
+    return res
+      .status(500)
+      .json({ message: "Server error while resetting password" });
+  }
+});

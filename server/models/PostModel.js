@@ -8,14 +8,19 @@ const PostSchema = new mongoose.Schema(
       ref: "pulseUsr",
       required: true,
     },
+
     text: { type: String, default: "" },
     mediaUrl: { type: String, default: "" },
     mediaType: { type: String, default: "" }, // "image" | "video"
 
-    // 📍 optional location
+    // 📍 optional location string ("Salalah", or "23.12, 55.19")
     location: { type: String, default: "" },
 
-    // 👍 who liked this post
+    // 📌 NEW: numerical GPS coordinates
+    latitude: { type: Number, default: null },
+    longitude: { type: Number, default: null },
+
+    // 👍 likes
     likes: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -40,4 +45,4 @@ const PostSchema = new mongoose.Schema(
 );
 
 const PostModel = mongoose.model("Post", PostSchema, "posts");
-export default PostModel;   // 👈 THIS is the important line
+export default PostModel; // 👈 correct export
