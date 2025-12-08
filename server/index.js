@@ -11,8 +11,17 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 🔐 in real projects use process.env.JWT_SECRET
-const JWT_SECRET = "super-secret-pulse-key-change-this";
+const PORT = process.env.PORT || 6969;
+
+// 🔐 JWT secret (can be overridden in Docker / .env)
+const JWT_SECRET =
+  process.env.JWT_SECRET || "super-secret-pulse-key-change-this";
+
+// --- DB connection ---
+const MONGO_URI =
+  process.env.MONGO_URI ||
+  "mongodb+srv://admin:admin@students.ll5gldx.mongodb.net/PulseDb?appName=students";
+
 
 // 🔐 Simple JWT auth middleware
 const authMiddleware = (req, res, next) => {
@@ -55,12 +64,12 @@ const connectionString =
   "mongodb+srv://admin:admin@students.ll5gldx.mongodb.net/PulseDb?appName=students";
 
 mongoose
-  .connect(connectionString)
+  .connect(MONGO_URI)
   .then(() => {
     console.log("Database Connected..");
 
-    app.listen(6969, () => {
-      console.log("Server connected at port number 6969..");
+    app.listen(PORT, () => {
+      console.log(`Server connected at port number ${PORT}..`);
     });
   })
   .catch((error) => {
