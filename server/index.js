@@ -22,7 +22,7 @@ const MONGO_URI =
   process.env.MONGO_URI ||
   "mongodb+srv://admin:admin@students.ll5gldx.mongodb.net/PulseDb?appName=students";
 
-// 🔗 Helper to build correct base URL (works on localhost + Render)
+
 const getBaseUrl = (req) => {
   const protocol = req.headers["x-forwarded-proto"] || req.protocol;
   const host = req.get("host");

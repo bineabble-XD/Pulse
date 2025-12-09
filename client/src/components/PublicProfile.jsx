@@ -6,7 +6,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { MdModeEdit, MdDeleteOutline } from "react-icons/md";
 
-const API_BASE = "http://localhost:6969";
+const API_BASE = "https://pulse-nahr.onrender.com";
 
 function PublicProfile() {
   const { id } = useParams(); // this is actually username in your route
