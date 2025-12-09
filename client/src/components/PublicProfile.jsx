@@ -2,20 +2,32 @@ import React, { useEffect, useState } from "react";
 import bgTexture from "../assets/4.png";
 import Navbar from "./Navbar";
 import { useSelector } from "react-redux";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import axios from "axios";
+import { FcLike } from "react-icons/fc";
+import { FaRegCommentDots } from "react-icons/fa";
 import { MdModeEdit, MdDeleteOutline } from "react-icons/md";
 
 const API_BASE = "https://pulse-1-rke8.onrender.com";
 
-function PublicProfile() {
-  const { username } = useParams();   
-  const navigate = useNavigate();
+// tiny helper (same idea as Profile)
+const formatDateTime = (isoString) => {
+  if (!isoString) return "";
+  const d = new Date(isoString);
+  if (isNaN(d.getTime())) return "";
+  const day = String(d.getDate()).padStart(2, "0");
+  const monthShort = d.toLocaleString("en", { month: "short" });
+  const hours = String(d.getHours()).padStart(2, "0");
+  const mins = String(d.getMinutes()).padStart(2, "0");
+  return `${day} ${monthShort} · ${hours}:${mins}`;
+};
 
-  // ✅ use PulseSlice, not old auth slice
+const PublicProfile = () => {
+  // /u/:username
+  const { username } = useParams();
   const { user: currentUser } = useSelector((state) => state.users);
 
-  const [user, setUser] = useState(null);
+  const [profileUser, setProfileUser] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -24,113 +36,113 @@ function PublicProfile() {
   const [editingPostId, setEditingPostId] = useState(null);
   const [editText, setEditText] = useState("");
 
-  const [isOwnProfile, setIsOwnProfile] = useState(false);
+  const isOwnProfile =
+    currentUser && profileUser && currentUser._id === profileUser._id;
 
-  // -----------------------------------------------------
-  // FETCH USER + POSTS from /users/:username/profile
-  // -----------------------------------------------------
+  // ============================
+  // FETCH USER + POSTS
+  // ============================
   useEffect(() => {
     const fetchProfile = async () => {
+      if (!username) return;
+
       try {
         setLoading(true);
         setError("");
+
+        console.log("PublicProfile → fetching:", username);
 
         const res = await axios.get(
           `${API_BASE}/users/${username}/profile`
         );
 
-        const fetchedUser = res.data.user;
-        const userPosts = res.data.posts || [];
+        console.log("PublicProfile → response:", res.data);
 
-        setUser(fetchedUser);
-        setPosts(userPosts);
-
-        if (currentUser?._id && fetchedUser?._id) {
-          setIsOwnProfile(currentUser._id === fetchedUser._id);
-        } else {
-          setIsOwnProfile(false);
-        }
+        setProfileUser(res.data.user || null);
+        setPosts(res.data.posts || []);
       } catch (err) {
-        console.error("Profile fetch error:", err);
+        console.error("PublicProfile → fetch error:", err);
         setError(
           err.response?.data?.message || "Error loading profile"
         );
-        setUser(null);
+        setProfileUser(null);
         setPosts([]);
       } finally {
         setLoading(false);
       }
     };
 
-    if (username) {
-      fetchProfile();
-    }
-  }, [username, currentUser?._id]);
+    fetchProfile();
+  }, [username]);
 
-  // -----------------------------------------------------
-  // LIKE POST  → POST /posts/:id/like
-  // -----------------------------------------------------
+  // ============================
+  // LIKE
+  // ============================
   const handleToggleLike = async (postId) => {
-    try {
-      const res = await axios.post(`${API_BASE}/posts/${postId}/like`, {
-        // backend uses token via authMiddleware; body is extra
-        userId: currentUser?._id,
-      });
+    if (!currentUser?._id) return;
 
+    try {
+      const res = await axios.post(`${API_BASE}/posts/${postId}/like`, {});
       const updated = res.data.post;
       setPosts((prev) =>
         prev.map((p) => (p._id === updated._id ? updated : p))
       );
     } catch (err) {
-      console.error("Like error:", err);
+      console.error("PublicProfile → like error:", err);
     }
   };
 
-  // -----------------------------------------------------
-  // ADD COMMENT  → POST /posts/:id/comment
-  // -----------------------------------------------------
+  // ============================
+  // COMMENT
+  // ============================
   const handleAddComment = async (postId) => {
-    const comment = commentInputs[postId]?.trim();
-    if (!comment) return;
+    if (!currentUser?._id) return;
+
+    const text = (commentInputs[postId] || "").trim();
+    if (!text) return;
 
     try {
       const res = await axios.post(
         `${API_BASE}/posts/${postId}/comment`,
-        {
-          text: comment,
-          userId: currentUser?._id, // backend uses token
-        }
+        { text }
       );
-
       const updated = res.data.post;
       setPosts((prev) =>
         prev.map((p) => (p._id === updated._id ? updated : p))
       );
-
       setCommentInputs((prev) => ({ ...prev, [postId]: "" }));
     } catch (err) {
-      console.error("Comment error:", err);
+      console.error("PublicProfile → comment error:", err);
     }
   };
 
-  // -----------------------------------------------------
-  // DELETE POST  → DELETE /posts/:id
-  // -----------------------------------------------------
+  const handleCommentChange = (postId, value) => {
+    setCommentInputs((prev) => ({
+      ...prev,
+      [postId]: value,
+    }));
+  };
+
+  // ============================
+  // DELETE POST
+  // ============================
   const handleDeletePost = async (postId) => {
+    if (!currentUser?._id) return;
     if (!window.confirm("Delete this post?")) return;
 
     try {
       await axios.delete(`${API_BASE}/posts/${postId}`);
       setPosts((prev) => prev.filter((p) => p._id !== postId));
     } catch (err) {
-      console.error("Delete error:", err);
+      console.error("PublicProfile → delete error:", err);
     }
   };
 
-  // -----------------------------------------------------
-  // EDIT POST  → PUT /posts/:id
-  // -----------------------------------------------------
+  // ============================
+  // EDIT POST
+  // ============================
   const startEditingPost = (post) => {
+    if (!post || !post._id) return;
     setEditingPostId(post._id);
     setEditText(post.text || "");
   };
@@ -141,33 +153,41 @@ function PublicProfile() {
   };
 
   const handleSaveEdit = async (postId) => {
+    if (!currentUser?._id) return;
+
+    const trimmed = (editText || "").trim();
+
     try {
       const res = await axios.put(`${API_BASE}/posts/${postId}`, {
-        text: editText.trim(),
+        text: trimmed,
       });
-
       const updated = res.data.post;
       setPosts((prev) =>
         prev.map((p) => (p._id === updated._id ? updated : p))
       );
-
       setEditingPostId(null);
       setEditText("");
     } catch (err) {
-      console.error("Edit error:", err);
+      console.error("PublicProfile → edit error:", err);
     }
   };
 
-  // -----------------------------------------------------
-  // RENDER
-  // -----------------------------------------------------
+  // ============================
+  // RENDER STATES
+  // ============================
   if (loading) {
     return (
       <div
-        className="min-h-screen w-full bg-cover bg-center flex items-center justify-center"
+        className="profile-page"
         style={{ backgroundImage: `url(${bgTexture})` }}
       >
-        <p style={{ color: "white" }}>Loading profile...</p>
+        <div className="profile-overlay" />
+        <div className="profile-inner">
+          <Navbar />
+          <main className="profile-content">
+            <p style={{ color: "white" }}>Loading profile...</p>
+          </main>
+        </div>
       </div>
     );
   }
@@ -175,189 +195,316 @@ function PublicProfile() {
   if (error) {
     return (
       <div
-        className="min-h-screen w-full bg-cover bg-center flex flex-col items-center justify-center"
+        className="profile-page"
         style={{ backgroundImage: `url(${bgTexture})` }}
       >
-        <Navbar />
-        <p style={{ color: "salmon", marginTop: 16 }}>{error}</p>
+        <div className="profile-overlay" />
+        <div className="profile-inner">
+          <Navbar />
+          <main className="profile-content">
+            <p style={{ color: "salmon" }}>{error}</p>
+          </main>
+        </div>
       </div>
     );
   }
 
-  if (!user) {
+  if (!profileUser) {
     return (
       <div
-        className="min-h-screen w-full bg-cover bg-center flex flex-col items-center justify-center"
+        className="profile-page"
         style={{ backgroundImage: `url(${bgTexture})` }}
       >
-        <Navbar />
-        <p style={{ color: "white", marginTop: 16 }}>User not found.</p>
+        <div className="profile-overlay" />
+        <div className="profile-inner">
+          <Navbar />
+          <main className="profile-content">
+            <p style={{ color: "white" }}>User not found.</p>
+          </main>
+        </div>
       </div>
     );
   }
+
+  const stats = {
+    followers: profileUser.followers?.length || 0,
+    following: profileUser.following?.length || 0,
+    posts: posts.length,
+  };
 
   return (
     <div
-      className="min-h-screen w-full bg-cover bg-center"
+      className="profile-page"
       style={{ backgroundImage: `url(${bgTexture})` }}
     >
-      <Navbar />
+      <div className="profile-overlay" />
+      <div className="profile-inner">
+        <Navbar />
 
-      <div className="profile-container">
-        <div className="profile-card">
-          <div className="profile-avatar"></div>
-
-          <h2>@{user.username}</h2>
-
-          <div className="profile-stats">
-            <p>Followers: {user.followers?.length || 0}</p>
-            <p>Following: {user.following?.length || 0}</p>
-            <p>Posts: {posts.length}</p>
-          </div>
-        </div>
-
-        {/* POSTS */}
-        <div className="profile-posts-wrapper">
-          {posts.map((post) => {
-            // supports both string or populated object author
-            const authorId =
-              typeof post.author === "string"
-                ? post.author
-                : post.author?._id;
-
-            const isAuthor = authorId === currentUser?._id;
-            const canEdit = isOwnProfile && isAuthor;
-            const isEditing = editingPostId === post._id;
-
-            const isLiked =
-              currentUser &&
-              Array.isArray(post.likes) &&
-              post.likes.some((id) => {
-                if (typeof id === "string") return id === currentUser._id;
-                if (id?._id) return id._id === currentUser._id;
-                return false;
-              });
-
-            const likeCount = post.likes?.length || 0;
-
-            return (
-              <article key={post._id} className="profile-post-card">
-                {/* HEADER */}
-                <header className="profile-post-header">
-                  <div className="profile-post-user">
-                    <div className="small-avatar"></div>
-                    <span>@{user.username}</span>
-                  </div>
-
-                  <div className="profile-post-meta">
-                    {post.location && <span>{post.location}</span>}
-                    <span>
-                      {post.createdAt
-                        ? new Date(post.createdAt).toLocaleString()
-                        : ""}
-                    </span>
-                  </div>
-                </header>
-
-                {/* TEXT / EDIT */}
-                {!isEditing && post.text && (
-                  <p className="profile-post-text">{post.text}</p>
-                )}
-
-                {isEditing && (
-                  <div className="edit-box">
-                    <textarea
-                      className="edit-textarea"
-                      value={editText}
-                      onChange={(e) => setEditText(e.target.value)}
-                    />
-                    <div className="edit-actions">
-                      <button
-                        className="edit-save"
-                        onClick={() => handleSaveEdit(post._id)}
-                      >
-                        Save
-                      </button>
-                      <button
-                        className="edit-cancel"
-                        onClick={cancelEditingPost}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* MEDIA */}
-                {post.mediaUrl && (
-                  <div className="profile-post-media">
-                    {post.mediaType === "video" ? (
-                      <video src={post.mediaUrl} controls />
-                    ) : (
-                      <img src={post.mediaUrl} alt="post" />
-                    )}
-                  </div>
-                )}
-
-                {/* FOOTER */}
-                <footer className="profile-post-footer">
-                  {/* LIKE */}
-                  <button
-                    className={`post-btn ${isLiked ? "liked" : ""}`}
-                    onClick={() => handleToggleLike(post._id)}
-                  >
-                    ❤️ {likeCount > 0 && <span>{likeCount}</span>}
-                  </button>
-
-                  {/* COMMENT */}
-                  <button className="post-btn">
-                    💬 {post.comments?.length || 0}
-                  </button>
-
-                  {/* EDIT + DELETE */}
-                  {canEdit && (
-                    <>
-                      <button
-                        className="post-btn"
-                        onClick={() => startEditingPost(post)}
-                      >
-                        <MdModeEdit size={18} />
-                      </button>
-
-                      <button
-                        className="post-btn delete"
-                        onClick={() => handleDeletePost(post._id)}
-                      >
-                        <MdDeleteOutline size={18} />
-                      </button>
-                    </>
-                  )}
-                </footer>
-
-                {/* COMMENT INPUT */}
-                <div className="comment-box">
-                  <input
-                    type="text"
-                    placeholder="Add a comment..."
-                    value={commentInputs[post._id] || ""}
-                    onChange={(e) =>
-                      setCommentInputs((prev) => ({
-                        ...prev,
-                        [post._id]: e.target.value,
-                      }))
-                    }
+        <main className="profile-content">
+          {/* LEFT: simple profile card */}
+          <section className="profile-sidebar">
+            <div className="profile-avatar-wrap">
+              <div className="profile-avatar-circle">
+                {profileUser.profilePic ? (
+                  <img
+                    src={profileUser.profilePic}
+                    alt={profileUser.username}
+                    className="profile-avatar-image"
                   />
-                  <button onClick={() => handleAddComment(post._id)}>
-                    Send
-                  </button>
-                </div>
-              </article>
-            );
-          })}
-        </div>
+                ) : (
+                  <span className="profile-avatar-icon">👤</span>
+                )}
+              </div>
+            </div>
+
+            <div className="profile-username">
+              <h2>@{profileUser.username}</h2>
+            </div>
+
+            <div className="profile-stats">
+              <div className="profile-stat-row">
+                <span className="profile-stat-label">Followers</span>
+                <span className="profile-stat-pill">{stats.followers}</span>
+              </div>
+              <div className="profile-stat-row">
+                <span className="profile-stat-label">Following</span>
+                <span className="profile-stat-pill">{stats.following}</span>
+              </div>
+              <div className="profile-stat-row">
+                <span className="profile-stat-label">Posts</span>
+                <span className="profile-stat-pill">{stats.posts}</span>
+              </div>
+            </div>
+          </section>
+
+          {/* RIGHT: posts grid, same style as home/profile cards */}
+          <section className="profile-feed">
+            {posts.length === 0 ? (
+              <p className="profile-empty-text">
+                No posts from @{profileUser.username} yet.
+              </p>
+            ) : (
+              posts.map((post) => {
+                // author can be id or populated
+                const authorId =
+                  typeof post.author === "string"
+                    ? post.author
+                    : post.author?._id;
+
+                const isAuthor =
+                  currentUser && authorId === currentUser._id;
+                const isEditing = editingPostId === post._id;
+
+                const likeCount = post.likes?.length || 0;
+                const isLiked =
+                  currentUser &&
+                  Array.isArray(post.likes) &&
+                  post.likes.some((id) => {
+                    if (typeof id === "string") return id === currentUser._id;
+                    if (id?._id) return id._id === currentUser._id;
+                    return false;
+                  });
+
+                const comments = post.comments || [];
+                const commentValue = commentInputs[post._id] || "";
+                const createdLabel = formatDateTime(post.createdAt);
+                const hasLocation =
+                  post.location && post.location.trim() !== "";
+
+                return (
+                  <article key={post._id} className="home-note-card">
+                    <header className="home-note-header">
+                      <div className="home-note-avatar">
+                        {post.author?.profilePic ? (
+                          <img
+                            src={post.author.profilePic}
+                            alt="avatar"
+                            className="home-note-avatar-image"
+                          />
+                        ) : (
+                          "👤"
+                        )}
+                      </div>
+
+                      <div className="home-note-header-text">
+                        <div className="home-note-header-top">
+                          <span className="home-note-username">
+                            @{post.author?.username || profileUser.username}
+                          </span>
+
+                          {(hasLocation || createdLabel) && (
+                            <span className="home-note-meta">
+                              {hasLocation && (
+                                <>
+                                  <span className="home-note-meta-location">
+                                    📍 {post.location}
+                                  </span>
+                                  {createdLabel && (
+                                    <span className="home-note-meta-sep">
+                                      •
+                                    </span>
+                                  )}
+                                </>
+                              )}
+                              {createdLabel && (
+                                <span className="home-note-meta-time">
+                                  {createdLabel}
+                                </span>
+                              )}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </header>
+
+                    {post.mediaUrl && (
+                      <div className="home-note-media">
+                        {post.mediaType === "video" ? (
+                          <video
+                            src={post.mediaUrl}
+                            controls
+                            className="home-note-video"
+                          />
+                        ) : (
+                          <img
+                            src={post.mediaUrl}
+                            alt="User upload"
+                            className="home-note-image"
+                          />
+                        )}
+                      </div>
+                    )}
+
+                    {!isEditing && post.text && (
+                      <p className="home-note-text">{post.text}</p>
+                    )}
+
+                    {isEditing && (
+                      <div className="home-note-edit">
+                        <textarea
+                          className="home-note-edit-input"
+                          value={editText}
+                          onChange={(e) => setEditText(e.target.value)}
+                        />
+                        <div className="home-note-edit-actions">
+                          <button
+                            type="button"
+                            className="home-note-edit-save"
+                            onClick={() => handleSaveEdit(post._id)}
+                          >
+                            Save
+                          </button>
+                          <button
+                            type="button"
+                            className="home-note-edit-cancel"
+                            onClick={cancelEditingPost}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    <footer className="home-note-footer">
+                      <button
+                        type="button"
+                        className={`home-note-icon-btn ${
+                          isLiked ? "home-note-icon-btn--active" : ""
+                        }`}
+                        onClick={() => handleToggleLike(post._id)}
+                      >
+                        <FcLike size={18} />
+                        {likeCount > 0 && (
+                          <span className="home-note-icon-count">
+                            {likeCount}
+                          </span>
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
+                        className="home-note-icon-btn"
+                      >
+                        <FaRegCommentDots size={16} />
+                        {comments.length > 0 && (
+                          <span className="home-note-icon-count">
+                            {comments.length}
+                          </span>
+                        )}
+                      </button>
+
+                      {isOwnProfile && isAuthor && (
+                        <>
+                          <button
+                            type="button"
+                            className="home-note-icon-btn"
+                            onClick={() => startEditingPost(post)}
+                          >
+                            <MdModeEdit size={18} />
+                          </button>
+
+                          <button
+                            type="button"
+                            className="home-note-icon-btn home-note-icon-btn--danger"
+                            onClick={() => handleDeletePost(post._id)}
+                          >
+                            <MdDeleteOutline size={18} />
+                          </button>
+                        </>
+                      )}
+                    </footer>
+
+                    <div className="home-post-comments">
+                      {comments.length > 0 && (
+                        <div className="home-post-comments-list">
+                          {comments.map((c) => (
+                            <div
+                              key={c._id || c.createdAt}
+                              className="home-post-comment"
+                            >
+                              <span className="home-post-comment-author">
+                                @{c.author?.username || "user"}
+                              </span>
+                              <span className="home-post-comment-text">
+                                {" "}
+                                {c.text}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {currentUser && (
+                        <div className="home-post-comment-input-row">
+                          <input
+                            type="text"
+                            className="home-post-comment-input"
+                            placeholder="Add a comment..."
+                            value={commentValue}
+                            onChange={(e) =>
+                              handleCommentChange(post._id, e.target.value)
+                            }
+                          />
+                          <button
+                            className="home-post-comment-send"
+                            type="button"
+                            onClick={() => handleAddComment(post._id)}
+                          >
+                            SEND
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </article>
+                );
+              })
+            )}
+          </section>
+        </main>
       </div>
     </div>
   );
-}
+};
 
 export default PublicProfile;
