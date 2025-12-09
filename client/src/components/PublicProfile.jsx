@@ -10,7 +10,6 @@ import { MdModeEdit, MdDeleteOutline } from "react-icons/md";
 
 const API_BASE = "https://pulse-1-rke8.onrender.com";
 
-// tiny helper (same idea as Profile)
 const formatDateTime = (isoString) => {
   if (!isoString) return "";
   const d = new Date(isoString);
@@ -36,6 +35,8 @@ const PublicProfile = () => {
   const [editingPostId, setEditingPostId] = useState(null);
   const [editText, setEditText] = useState("");
 
+  const [isFollowing, setIsFollowing] = useState(false);
+
   const isOwnProfile =
     currentUser && profileUser && currentUser._id === profileUser._id;
 
@@ -50,16 +51,28 @@ const PublicProfile = () => {
         setLoading(true);
         setError("");
 
-        console.log("PublicProfile → fetching:", username);
-
         const res = await axios.get(
           `${API_BASE}/users/${username}/profile`
         );
 
-        console.log("PublicProfile → response:", res.data);
+        const fetchedUser = res.data.user || null;
+        const fetchedPosts = res.data.posts || [];
 
-        setProfileUser(res.data.user || null);
-        setPosts(res.data.posts || []);
+        setProfileUser(fetchedUser);
+        setPosts(fetchedPosts);
+
+        // figure out if currentUser already follows this profile
+        if (currentUser?._id && fetchedUser?._id) {
+          const followingArray = currentUser.following || [];
+          const already = followingArray.some((id) => {
+            if (typeof id === "string") return id === fetchedUser._id;
+            if (id?._id) return id._id === fetchedUser._id;
+            return false;
+          });
+          setIsFollowing(already);
+        } else {
+          setIsFollowing(false);
+        }
       } catch (err) {
         console.error("PublicProfile → fetch error:", err);
         setError(
@@ -67,13 +80,73 @@ const PublicProfile = () => {
         );
         setProfileUser(null);
         setPosts([]);
+        setIsFollowing(false);
       } finally {
         setLoading(false);
       }
     };
 
     fetchProfile();
-  }, [username]);
+  }, [username, currentUser?._id]);
+
+  // ============================
+  // FOLLOW / UNFOLLOW
+  // ============================
+  const handleToggleFollow = async () => {
+    if (!currentUser?._id || !profileUser?._id) return;
+    if (isOwnProfile) return; // just in case
+
+    const myId = currentUser._id;
+    const targetId = profileUser._id;
+
+    try {
+      if (isFollowing) {
+        // UNFOLLOW
+        await axios.post(`${API_BASE}/users/${myId}/unfollow`, {
+          targetId,
+        });
+
+        setIsFollowing(false);
+        // update local followers list
+        setProfileUser((prev) => {
+          if (!prev) return prev;
+          const prevFollowers = prev.followers || [];
+          const newFollowers = prevFollowers.filter((f) => {
+            if (typeof f === "string") return f !== myId;
+            if (f?._id) return f._id !== myId;
+            return true;
+          });
+          return { ...prev, followers: newFollowers };
+        });
+      } else {
+        // FOLLOW
+        await axios.post(`${API_BASE}/users/${myId}/follow`, {
+          targetId,
+        });
+
+        setIsFollowing(true);
+        // update local followers list
+        setProfileUser((prev) => {
+          if (!prev) return prev;
+          const prevFollowers = prev.followers || [];
+          // avoid duplicates
+          const already = prevFollowers.some((f) => {
+            if (typeof f === "string") return f === myId;
+            if (f?._id) return f._id === myId;
+            return false;
+          });
+          if (already) return prev;
+
+          return {
+            ...prev,
+            followers: [...prevFollowers, myId],
+          };
+        });
+      }
+    } catch (err) {
+      console.error("PublicProfile → follow/unfollow error:", err);
+    }
+  };
 
   // ============================
   // LIKE
@@ -242,7 +315,7 @@ const PublicProfile = () => {
         <Navbar />
 
         <main className="profile-content">
-          {/* LEFT: simple profile card */}
+          {/* LEFT: profile card + FOLLOW BUTTON */}
           <section className="profile-sidebar">
             <div className="profile-avatar-wrap">
               <div className="profile-avatar-circle">
@@ -262,7 +335,17 @@ const PublicProfile = () => {
               <h2>@{profileUser.username}</h2>
             </div>
 
-            <div className="profile-stats">
+            {currentUser && !isOwnProfile && (
+              <button
+                className="profile-change-btn"
+                type="button"
+                onClick={handleToggleFollow}
+              >
+                {isFollowing ? "FOLLOWING" : "FOLLOW"}
+              </button>
+            )}
+
+            <div className="profile-stats" style={{ marginTop: "16px" }}>
               <div className="profile-stat-row">
                 <span className="profile-stat-label">Followers</span>
                 <span className="profile-stat-pill">{stats.followers}</span>
@@ -278,7 +361,7 @@ const PublicProfile = () => {
             </div>
           </section>
 
-          {/* RIGHT: posts grid, same style as home/profile cards */}
+          {/* RIGHT: posts grid (same style as Home/Profile) */}
           <section className="profile-feed">
             {posts.length === 0 ? (
               <p className="profile-empty-text">
@@ -286,7 +369,6 @@ const PublicProfile = () => {
               </p>
             ) : (
               posts.map((post) => {
-                // author can be id or populated
                 const authorId =
                   typeof post.author === "string"
                     ? post.author
