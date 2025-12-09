@@ -9,12 +9,17 @@ import { MdModeEdit, MdDeleteOutline } from "react-icons/md";
 const API_BASE = "https://pulse-1-rke8.onrender.com";
 
 function PublicProfile() {
-  const { id } = useParams(); // this is actually username in your route
+  // in your routes this is actually :username → /u/:username
+  const { id: username } = useParams();
   const navigate = useNavigate();
-  const currentUser = useSelector((state) => state.auth.user);
+
+  // ✅ use PulseSlice, not old auth slice
+  const { user: currentUser } = useSelector((state) => state.users);
 
   const [user, setUser] = useState(null);
   const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const [commentInputs, setCommentInputs] = useState({});
   const [editingPostId, setEditingPostId] = useState(null);
@@ -23,38 +28,59 @@ function PublicProfile() {
   const [isOwnProfile, setIsOwnProfile] = useState(false);
 
   // -----------------------------------------------------
-  // FETCH USER + POSTS
+  // FETCH USER + POSTS from /users/:username/profile
   // -----------------------------------------------------
   useEffect(() => {
-    axios
-      .get(`${API_BASE}/users/${id}`)
-      .then((res) => {
-        const fetchedUser = res.data.user;
-        setUser(fetchedUser);
+    const fetchProfile = async () => {
+      try {
+        setLoading(true);
+        setError("");
 
-        // FIXED – now correctly checks real user._id
-        if (currentUser?._id === fetchedUser._id) {
-          setIsOwnProfile(true);
+        const res = await axios.get(
+          `${API_BASE}/users/${username}/profile`
+        );
+
+        const fetchedUser = res.data.user;
+        const userPosts = res.data.posts || [];
+
+        setUser(fetchedUser);
+        setPosts(userPosts);
+
+        if (currentUser?._id && fetchedUser?._id) {
+          setIsOwnProfile(currentUser._id === fetchedUser._id);
         } else {
           setIsOwnProfile(false);
         }
-      })
-      .catch(() => navigate("/home"));
+      } catch (err) {
+        console.error("Profile fetch error:", err);
+        setError(
+          err.response?.data?.message || "Error loading profile"
+        );
+        setUser(null);
+        setPosts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    axios
-      .get(`${API_BASE}/posts/user/${id}`)
-      .then((res) => setPosts(res.data.posts))
-      .catch(() => {});
-  }, [id, currentUser]);
+    if (username) {
+      fetchProfile();
+    }
+  }, [username, currentUser?._id]);
 
   // -----------------------------------------------------
-  // LIKE POST
+  // LIKE POST  → POST /posts/:id/like
   // -----------------------------------------------------
   const handleToggleLike = async (postId) => {
     try {
-      const res = await axios.put(`${API_BASE}/posts/like/${postId}`);
+      const res = await axios.post(`${API_BASE}/posts/${postId}/like`, {
+        // backend uses token via authMiddleware; body is extra
+        userId: currentUser?._id,
+      });
+
+      const updated = res.data.post;
       setPosts((prev) =>
-        prev.map((p) => (p._id === postId ? res.data.post : p))
+        prev.map((p) => (p._id === updated._id ? updated : p))
       );
     } catch (err) {
       console.error("Like error:", err);
@@ -62,19 +88,24 @@ function PublicProfile() {
   };
 
   // -----------------------------------------------------
-  // ADD COMMENT
+  // ADD COMMENT  → POST /posts/:id/comment
   // -----------------------------------------------------
   const handleAddComment = async (postId) => {
     const comment = commentInputs[postId]?.trim();
     if (!comment) return;
 
     try {
-      const res = await axios.post(`${API_BASE}/posts/comment/${postId}`, {
-        text: comment,
-      });
+      const res = await axios.post(
+        `${API_BASE}/posts/${postId}/comment`,
+        {
+          text: comment,
+          userId: currentUser?._id, // backend uses token
+        }
+      );
 
+      const updated = res.data.post;
       setPosts((prev) =>
-        prev.map((p) => (p._id === postId ? res.data.post : p))
+        prev.map((p) => (p._id === updated._id ? updated : p))
       );
 
       setCommentInputs((prev) => ({ ...prev, [postId]: "" }));
@@ -84,7 +115,7 @@ function PublicProfile() {
   };
 
   // -----------------------------------------------------
-  // DELETE POST
+  // DELETE POST  → DELETE /posts/:id
   // -----------------------------------------------------
   const handleDeletePost = async (postId) => {
     if (!window.confirm("Delete this post?")) return;
@@ -98,7 +129,7 @@ function PublicProfile() {
   };
 
   // -----------------------------------------------------
-  // EDIT POST
+  // EDIT POST  → PUT /posts/:id
   // -----------------------------------------------------
   const startEditingPost = (post) => {
     setEditingPostId(post._id);
@@ -116,8 +147,9 @@ function PublicProfile() {
         text: editText.trim(),
       });
 
+      const updated = res.data.post;
       setPosts((prev) =>
-        prev.map((p) => (p._id === postId ? res.data.post : p))
+        prev.map((p) => (p._id === updated._id ? updated : p))
       );
 
       setEditingPostId(null);
@@ -127,7 +159,43 @@ function PublicProfile() {
     }
   };
 
-  if (!user) return null;
+  // -----------------------------------------------------
+  // RENDER
+  // -----------------------------------------------------
+  if (loading) {
+    return (
+      <div
+        className="min-h-screen w-full bg-cover bg-center flex items-center justify-center"
+        style={{ backgroundImage: `url(${bgTexture})` }}
+      >
+        <p style={{ color: "white" }}>Loading profile...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div
+        className="min-h-screen w-full bg-cover bg-center flex flex-col items-center justify-center"
+        style={{ backgroundImage: `url(${bgTexture})` }}
+      >
+        <Navbar />
+        <p style={{ color: "salmon", marginTop: 16 }}>{error}</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div
+        className="min-h-screen w-full bg-cover bg-center flex flex-col items-center justify-center"
+        style={{ backgroundImage: `url(${bgTexture})` }}
+      >
+        <Navbar />
+        <p style={{ color: "white", marginTop: 16 }}>User not found.</p>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -152,20 +220,24 @@ function PublicProfile() {
         {/* POSTS */}
         <div className="profile-posts-wrapper">
           {posts.map((post) => {
-            // FIXED — supports both string or object author
+            // supports both string or populated object author
             const authorId =
               typeof post.author === "string"
                 ? post.author
                 : post.author?._id;
 
             const isAuthor = authorId === currentUser?._id;
-
             const canEdit = isOwnProfile && isAuthor;
-
             const isEditing = editingPostId === post._id;
 
             const isLiked =
-              currentUser && post.likes?.includes(currentUser._id);
+              currentUser &&
+              Array.isArray(post.likes) &&
+              post.likes.some((id) => {
+                if (typeof id === "string") return id === currentUser._id;
+                if (id?._id) return id._id === currentUser._id;
+                return false;
+              });
 
             const likeCount = post.likes?.length || 0;
 
@@ -179,8 +251,12 @@ function PublicProfile() {
                   </div>
 
                   <div className="profile-post-meta">
-                    {post.locationName && <span>{post.locationName}</span>}
-                    <span>{new Date(post.createdAt).toLocaleString()}</span>
+                    {post.location && <span>{post.location}</span>}
+                    <span>
+                      {post.createdAt
+                        ? new Date(post.createdAt).toLocaleString()
+                        : ""}
+                    </span>
                   </div>
                 </header>
 
@@ -203,7 +279,10 @@ function PublicProfile() {
                       >
                         Save
                       </button>
-                      <button className="edit-cancel" onClick={cancelEditingPost}>
+                      <button
+                        className="edit-cancel"
+                        onClick={cancelEditingPost}
+                      >
                         Cancel
                       </button>
                     </div>
@@ -213,10 +292,10 @@ function PublicProfile() {
                 {/* MEDIA */}
                 {post.mediaUrl && (
                   <div className="profile-post-media">
-                    {post.mediaType === "image" ? (
-                      <img src={post.mediaUrl} alt="post" />
-                    ) : (
+                    {post.mediaType === "video" ? (
                       <video src={post.mediaUrl} controls />
+                    ) : (
+                      <img src={post.mediaUrl} alt="post" />
                     )}
                   </div>
                 )}
@@ -233,10 +312,10 @@ function PublicProfile() {
 
                   {/* COMMENT */}
                   <button className="post-btn">
-                    💬 {post.comments?.length}
+                    💬 {post.comments?.length || 0}
                   </button>
 
-                  {/* EDIT + DELETE (NOW FIXED) */}
+                  {/* EDIT + DELETE */}
                   {canEdit && (
                     <>
                       <button
