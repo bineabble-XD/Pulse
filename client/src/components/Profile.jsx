@@ -1,14 +1,32 @@
 // src/components/Profile.jsx
 import React, { useRef, useState, useEffect } from "react";
-import bgTexture from "../assets/6.png";  
+import bgTexture from "../assets/6.png";
 
 import Navbar from "./Navbar";
 import { useSelector, useDispatch } from "react-redux";
 import { updateProfilePic } from "../features/PulseSlice";
 import axios from "axios";
-import PostCard from "./PostCard"; // 🔥 use the same card style as Home
+
+// icons – same ones used in Home.jsx
+import { FcLike } from "react-icons/fc";
+import { FaRegCommentDots } from "react-icons/fa";
+import { MdModeEdit, MdDeleteOutline } from "react-icons/md";
 
 const API_BASE = "http://localhost:6969";
+
+// helper to format createdAt (copied from Home.jsx)
+const formatDateTime = (isoString) => {
+  if (!isoString) return "";
+  const d = new Date(isoString);
+  if (isNaN(d.getTime())) return "";
+
+  const day = String(d.getDate()).padStart(2, "0");
+  const monthShort = d.toLocaleString("en", { month: "short" });
+  const hours = String(d.getHours()).padStart(2, "0");
+  const mins = String(d.getMinutes()).padStart(2, "0");
+
+  return `${day} ${monthShort} · ${hours}:${mins}`;
+};
 
 const Profile = () => {
   const dispatch = useDispatch();
@@ -45,6 +63,10 @@ const Profile = () => {
 
   // per-post comment input values
   const [commentInputs, setCommentInputs] = useState({});
+
+  // ✏️ edit state (same as Home.jsx)
+  const [editingPostId, setEditingPostId] = useState(null);
+  const [editText, setEditText] = useState("");
 
   // 🔥 Load YOUR posts from backend using /users/:username/profile
   useEffect(() => {
@@ -84,15 +106,13 @@ const Profile = () => {
     const selected = e.target.files && e.target.files[0];
     if (!selected) return;
 
-    // show instant preview
     const previewUrl = URL.createObjectURL(selected);
     setLocalPreview(previewUrl);
 
-    // send to backend via Redux thunk (will include JWT)
     dispatch(updateProfilePic(selected));
   };
 
-  // 🔥 Delete a post (no authorId body – backend uses token)
+  // 🗑 delete a post – backend uses JWT, no authorId needed
   const handleDeletePost = async (postId) => {
     if (!user?._id) return;
 
@@ -101,7 +121,6 @@ const Profile = () => {
 
     try {
       await axios.delete(`${API_BASE}/posts/${postId}`);
-
       setPosts((prev) => prev.filter((p) => p._id !== postId));
     } catch (err) {
       console.error("Delete post error:", err);
@@ -109,16 +128,12 @@ const Profile = () => {
     }
   };
 
-  // 👍 LIKE / UNLIKE (no userId body – backend uses token)
+  // 👍 like / unlike – backend uses JWT
   const handleToggleLike = async (postId) => {
     if (!user?._id) return;
 
     try {
-      const res = await axios.post(
-        `${API_BASE}/posts/${postId}/like`,
-        {}
-      );
-
+      const res = await axios.post(`${API_BASE}/posts/${postId}/like`, {});
       const updated = res.data.post;
       setPosts((prev) =>
         prev.map((p) => (p._id === updated._id ? updated : p))
@@ -129,7 +144,7 @@ const Profile = () => {
     }
   };
 
-  // 💬 handle typing comment
+  // 💬 comment typing
   const handleCommentChange = (postId, value) => {
     setCommentInputs((prev) => ({
       ...prev,
@@ -137,7 +152,7 @@ const Profile = () => {
     }));
   };
 
-  // 💬 submit comment (only text – backend uses token)
+  // 💬 submit comment
   const handleAddComment = async (postId) => {
     if (!user?._id) return;
 
@@ -156,7 +171,6 @@ const Profile = () => {
         prev.map((p) => (p._id === updated._id ? updated : p))
       );
 
-      // clear input for that post
       setCommentInputs((prev) => ({
         ...prev,
         [postId]: "",
@@ -167,7 +181,42 @@ const Profile = () => {
     }
   };
 
-  // 🔥 open following list modal (JWT protected)
+  // ✏️ start / cancel / save edit (same as Home.jsx)
+  const startEditingPost = (post) => {
+    if (!post || !post._id) return;
+    setEditingPostId(post._id);
+    setEditText(post.text || "");
+  };
+
+  const cancelEditingPost = () => {
+    setEditingPostId(null);
+    setEditText("");
+  };
+
+  const handleSaveEdit = async (postId) => {
+    if (!user?._id) return;
+
+    const trimmed = (editText || "").trim();
+
+    try {
+      const res = await axios.put(`${API_BASE}/posts/${postId}`, {
+        text: trimmed,
+      });
+
+      const updated = res.data.post;
+      setPosts((prev) =>
+        prev.map((p) => (p._id === updated._id ? updated : p))
+      );
+
+      setEditingPostId(null);
+      setEditText("");
+    } catch (err) {
+      console.error("Edit post error:", err);
+      alert("Error updating post");
+    }
+  };
+
+  // following / followers modals (unchanged from your previous Profile.jsx)
   const handleOpenFollowing = async () => {
     if (!user?._id) return;
 
@@ -204,7 +253,6 @@ const Profile = () => {
     }));
   };
 
-  // 🔥 open followers list modal (JWT protected)
   const handleOpenFollowers = async () => {
     if (!user?._id) return;
 
@@ -259,12 +307,10 @@ const Profile = () => {
       <div className="profile-overlay" />
 
       <div className="profile-inner">
-        {/* Shared Navbar */}
         <Navbar />
 
-        {/* Main content */}
         <main className="profile-content">
-          {/* Left column: profile card */}
+          {/* LEFT SIDE: profile card */}
           <section className="profile-sidebar">
             <div className="profile-avatar-wrap">
               <div className="profile-avatar-circle">
@@ -287,7 +333,6 @@ const Profile = () => {
                 {isLoading ? "UPDATING..." : "CHANGE PROFILE PICTURE"}
               </button>
 
-              {/* hidden file input */}
               <input
                 type="file"
                 accept="image/*"
@@ -305,35 +350,27 @@ const Profile = () => {
               <div
                 className="profile-stat-row profile-stat-row--clickable"
                 onClick={handleOpenFollowers}
-                style={{ cursor: "pointer" }}
               >
                 <span className="profile-stat-label">Followers</span>
-                <span className="profile-stat-pill">
-                  {stats.followers}
-                </span>
+                <span className="profile-stat-pill">{stats.followers}</span>
               </div>
 
               <div
                 className="profile-stat-row profile-stat-row--clickable"
                 onClick={handleOpenFollowing}
-                style={{ cursor: "pointer" }}
               >
                 <span className="profile-stat-label">Following</span>
-                <span className="profile-stat-pill">
-                  {stats.following}
-                </span>
+                <span className="profile-stat-pill">{stats.following}</span>
               </div>
 
               <div className="profile-stat-row">
                 <span className="profile-stat-label">Posts</span>
-                <span className="profile-stat-pill">
-                  {stats.posts}
-                </span>
+                <span className="profile-stat-pill">{stats.posts}</span>
               </div>
             </div>
           </section>
 
-          {/* Right column: your posts (now using Home-style PostCard) */}
+          {/* RIGHT SIDE: posts – SAME CARD STYLE AS HOME */}
           <section className="profile-feed">
             {loadingPosts ? (
               <p className="profile-empty-text">Loading your posts...</p>
@@ -344,28 +381,226 @@ const Profile = () => {
                 You haven’t posted anything yet.
               </p>
             ) : (
-              posts.map((post) => (
-                <PostCard
-                  key={post._id}
-                  post={post}
-                  currentUser={user}
-                  onLike={handleToggleLike}
-                  onDelete={handleDeletePost}
-                  onAddComment={handleAddComment}
-                  onCommentChange={handleCommentChange}
-                  commentValue={commentInputs[post._id] || ""}
-                  onOpenImage={(url) =>
-                    setImageModal({ open: true, url })
-                  }
-                  showDelete={true} // show delete button for your own posts
-                />
-              ))
+              posts.map((post) => {
+                const likeCount = post.likes?.length || 0;
+                const isLiked =
+                  user &&
+                  Array.isArray(post.likes) &&
+                  post.likes.some((id) => id === user._id);
+
+                const comments = post.comments || [];
+                const commentValue = commentInputs[post._id] || "";
+
+                const isAuthor =
+                  user && post.author && post.author._id === user._id;
+
+                const hasLocation =
+                  post.location && post.location.trim() !== "";
+                const createdLabel = formatDateTime(post.createdAt);
+                const isEditing = editingPostId === post._id;
+
+                return (
+                  <article key={post._id} className="home-note-card">
+                    <header className="home-note-header">
+                      <div className="home-note-avatar">
+                        {post.author?.profilePic ? (
+                          <img
+                            src={post.author.profilePic}
+                            alt="avatar"
+                            className="home-note-avatar-image"
+                          />
+                        ) : (
+                          "👤"
+                        )}
+                      </div>
+
+                      <div className="home-note-header-text">
+                        <div className="home-note-header-top">
+                          <span className="home-note-username">
+                            @{post.author?.username || "user"}
+                          </span>
+
+                          {(hasLocation || createdLabel) && (
+                            <span className="home-note-meta">
+                              {hasLocation && (
+                                <>
+                                  <span className="home-note-meta-location">
+                                    📍 {post.location}
+                                  </span>
+                                  {createdLabel && (
+                                    <span className="home-note-meta-sep">
+                                      •
+                                    </span>
+                                  )}
+                                </>
+                              )}
+                              {createdLabel && (
+                                <span className="home-note-meta-time">
+                                  {createdLabel}
+                                </span>
+                              )}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </header>
+
+                    {post.mediaUrl && (
+                      <div className="home-note-media">
+                        {post.mediaType === "video" ? (
+                          <video
+                            src={post.mediaUrl}
+                            controls
+                            className="home-note-video"
+                          />
+                        ) : (
+                          <img
+                            src={post.mediaUrl}
+                            alt="User upload"
+                            className="home-note-image"
+                            onClick={() =>
+                              setImageModal({
+                                open: true,
+                                url: post.mediaUrl,
+                              })
+                            }
+                          />
+                        )}
+                      </div>
+                    )}
+
+                    {/* TEXT OR EDIT MODE */}
+                    {!isEditing && post.text && (
+                      <p className="home-note-text">{post.text}</p>
+                    )}
+
+                    {isEditing && (
+                      <div className="home-note-edit">
+                        <textarea
+                          className="home-note-edit-input"
+                          value={editText}
+                          onChange={(e) => setEditText(e.target.value)}
+                        />
+                        <div className="home-note-edit-actions">
+                          <button
+                            type="button"
+                            className="home-note-edit-save"
+                            onClick={() => handleSaveEdit(post._id)}
+                          >
+                            Save
+                          </button>
+                          <button
+                            type="button"
+                            className="home-note-edit-cancel"
+                            onClick={cancelEditingPost}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* FOOTER BUTTONS */}
+                    <footer className="home-note-footer">
+                      <button
+                        type="button"
+                        className={`home-note-icon-btn ${
+                          isLiked ? "home-note-icon-btn--active" : ""
+                        }`}
+                        onClick={() => handleToggleLike(post._id)}
+                      >
+                        <FcLike size={18} />
+                        {likeCount > 0 && (
+                          <span className="home-note-icon-count">
+                            {likeCount}
+                          </span>
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
+                        className="home-note-icon-btn"
+                      >
+                        <FaRegCommentDots size={16} />
+                        {comments.length > 0 && (
+                          <span className="home-note-icon-count">
+                            {comments.length}
+                          </span>
+                        )}
+                      </button>
+
+                      {isAuthor && (
+                        <>
+                          <button
+                            type="button"
+                            className="home-note-icon-btn"
+                            onClick={() => startEditingPost(post)}
+                          >
+                            <MdModeEdit size={18} />
+                          </button>
+
+                          <button
+                            type="button"
+                            className="home-note-icon-btn home-note-icon-btn--danger"
+                            onClick={() => handleDeletePost(post._id)}
+                          >
+                            <MdDeleteOutline size={18} />
+                          </button>
+                        </>
+                      )}
+                    </footer>
+
+                    {/* COMMENTS */}
+                    <div className="home-post-comments">
+                      {comments.length > 0 && (
+                        <div className="home-post-comments-list">
+                          {comments.map((c) => (
+                            <div
+                              key={c._id || c.createdAt}
+                              className="home-post-comment"
+                            >
+                              <span className="home-post-comment-author">
+                                @{c.author?.username || "user"}
+                              </span>
+                              <span className="home-post-comment-text">
+                                {" "}
+                                {c.text}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {user && (
+                        <div className="home-post-comment-input-row">
+                          <input
+                            type="text"
+                            className="home-post-comment-input"
+                            placeholder="Add a comment..."
+                            value={commentValue}
+                            onChange={(e) =>
+                              handleCommentChange(post._id, e.target.value)
+                            }
+                          />
+                          <button
+                            className="home-post-comment-send"
+                            type="button"
+                            onClick={() => handleAddComment(post._id)}
+                          >
+                            SEND
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </article>
+                );
+              })
             )}
           </section>
         </main>
       </div>
 
-      {/* 🔍 FULLSCREEN IMAGE MODAL */}
+      {/* IMAGE MODAL */}
       {imageModal.open && (
         <div
           className="image-modal-backdrop"
@@ -391,7 +626,7 @@ const Profile = () => {
         </div>
       )}
 
-      {/* 👥 FOLLOWING LIST MODAL */}
+      {/* FOLLOWING MODAL */}
       {followingModal.open && (
         <div
           className="follow-modal-backdrop"
@@ -415,9 +650,7 @@ const Profile = () => {
             {followingModal.loading ? (
               <p className="follow-modal-text">Loading...</p>
             ) : followingModal.error ? (
-              <p className="follow-modal-text">
-                {followingModal.error}
-              </p>
+              <p className="follow-modal-text">{followingModal.error}</p>
             ) : followingModal.users.length === 0 ? (
               <p className="follow-modal-text">
                 You’re not following anyone yet.
@@ -455,7 +688,7 @@ const Profile = () => {
         </div>
       )}
 
-      {/* 👥 FOLLOWERS LIST MODAL */}
+      {/* FOLLOWERS MODAL */}
       {followersModal.open && (
         <div
           className="follow-modal-backdrop"
