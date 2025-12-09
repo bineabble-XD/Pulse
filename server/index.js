@@ -22,6 +22,12 @@ const MONGO_URI =
   process.env.MONGO_URI ||
   "mongodb+srv://admin:admin@students.ll5gldx.mongodb.net/PulseDb?appName=students";
 
+// 🔗 Helper to build correct base URL (works on localhost + Render)
+const getBaseUrl = (req) => {
+  const protocol = req.headers["x-forwarded-proto"] || req.protocol;
+  const host = req.get("host");
+  return `${protocol}://${host}`;
+};
 
 // 🔐 Simple JWT auth middleware
 const authMiddleware = (req, res, next) => {
@@ -60,9 +66,6 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // --- DB connection ---
-const connectionString =
-  "mongodb+srv://admin:admin@students.ll5gldx.mongodb.net/PulseDb?appName=students";
-
 mongoose
   .connect(MONGO_URI)
   .then(() => {
@@ -237,7 +240,6 @@ app.get("/users", authMiddleware, async (req, res) => {
   }
 });
 
-
 // GET /auth/me -> verify token and return fresh user (no password)
 app.get("/auth/me", authMiddleware, async (req, res) => {
   try {
@@ -254,7 +256,6 @@ app.get("/auth/me", authMiddleware, async (req, res) => {
     return res.status(500).json({ message: "Error fetching current user" });
   }
 });
-
 
 app.post(
   "/posts",
@@ -273,7 +274,8 @@ app.post(
       let mediaType = "";
 
       if (req.file) {
-        mediaUrl = `http://localhost:6969/uploads/${req.file.filename}`;
+        const baseUrl = getBaseUrl(req);
+        mediaUrl = `${baseUrl}/uploads/${req.file.filename}`;
         mediaType = req.file.mimetype.startsWith("video") ? "video" : "image";
       }
 
@@ -281,8 +283,8 @@ app.post(
         author: authorId,
         text: text || "",
         location: location || "",
-        latitude: latitude || null,       // ⬅️ NEW
-        longitude: longitude || null,     // ⬅️ NEW
+        latitude: latitude || null,
+        longitude: longitude || null,
         mediaUrl,
         mediaType,
       });
@@ -302,8 +304,6 @@ app.post(
     }
   }
 );
-
-
 
 // DELETE /posts/:id  -> only author can delete (author from token)
 app.delete("/posts/:id", authMiddleware, async (req, res) => {
@@ -632,7 +632,8 @@ app.post(
         return res.status(400).json({ message: "No image uploaded" });
       }
 
-      const imageUrl = `http://localhost:6969/uploads/${req.file.filename}`;
+      const baseUrl = getBaseUrl(req);
+      const imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
 
       const user = await UserModel.findByIdAndUpdate(
         userId,
@@ -720,7 +721,6 @@ app.get("/users/:id/followers-list", authMiddleware, async (req, res) => {
       .json({ message: "Error fetching followers list" });
   }
 });
-
 
 app.put("/posts/:id", authMiddleware, async (req, res) => {
   try {
