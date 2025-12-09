@@ -6,7 +6,7 @@ import axios from "axios";
 import logoBg from "../assets/LogoBg.png";
 import bgTexture from "../assets/1.png";
 
-const API_BASE = "https://pulse-nahr.onrender.com";
+const API_BASE = "https://pulse-1-rke8.onrender.com";
 
 const ResetPassword = () => {
   const navigate = useNavigate();

@@ -11,7 +11,7 @@ import logo from "../assets/LogoBg.png";
 import { UserRegisterSchemaValidation } from "../validations/UserRegisterSchemaValidation";
 import { addUser } from "../features/PulseSlice";
 
-const API_BASE = "https://pulse-nahr.onrender.com";
+const API_BASE = "https://pulse-1-rke8.onrender.com";
 
 const Registeration = () => {
   // form states

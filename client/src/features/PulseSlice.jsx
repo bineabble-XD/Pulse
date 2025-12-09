@@ -2,7 +2,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const API_BASE = "https://pulse-nahr.onrender.com";
+const API_BASE = "https://pulse-1-rke8.onrender.com";
 
 // === THUNKS =======================================================
 

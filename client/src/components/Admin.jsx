@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import axios from "axios";
 import AdminNavbar from "./AdminNavbar";
 
-const API_BASE = "https://pulse-nahr.onrender.com";
+const API_BASE = "https://pulse-1-rke8.onrender.com";
 
 const Admin = () => {
   const { user } = useSelector((state) => state.users);

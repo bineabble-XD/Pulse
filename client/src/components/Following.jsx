@@ -6,7 +6,7 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const API_BASE = "https://pulse-nahr.onrender.com";
+const API_BASE = "https://pulse-1-rke8.onrender.com";
 
 const Following = () => {
   const { user } = useSelector((state) => state.users);

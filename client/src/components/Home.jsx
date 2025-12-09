@@ -11,7 +11,7 @@ import { FcLike } from "react-icons/fc";
 import { FaRegCommentDots } from "react-icons/fa";
 import { MdModeEdit, MdDeleteOutline } from "react-icons/md";
 
-const API_BASE = "https://pulse-nahr.onrender.com";
+const API_BASE = "https://pulse-1-rke8.onrender.com";
 
 // 🔹 helper to format createdAt
 const formatDateTime = (isoString) => {
