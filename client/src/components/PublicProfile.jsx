@@ -9,8 +9,7 @@ import { MdModeEdit, MdDeleteOutline } from "react-icons/md";
 const API_BASE = "https://pulse-1-rke8.onrender.com";
 
 function PublicProfile() {
-  // in your routes this is actually :username → /u/:username
-  const { id: username } = useParams();
+  const { username } = useParams();   
   const navigate = useNavigate();
 
   // ✅ use PulseSlice, not old auth slice
