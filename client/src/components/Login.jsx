@@ -22,11 +22,10 @@ const Login = () => {
 
   const dispatch = useDispatch();
   const { user, isSuccess, isError, message, isLoading } = useSelector(
-    (state) => state.users       // 👈 make sure this matches store.jsx
+    (state) => state.users       
   );
   const navigate = useNavigate();
 
-  // ✅ clear any old "Register failed" / other auth messages
   useEffect(() => {
     dispatch(resetStatus());
   }, [dispatch]);
@@ -46,11 +45,10 @@ const Login = () => {
 
 useEffect(() => {
   if (user && isSuccess) {
-    // 🔥 check role or isAdmin from backend
     if (user.role === "admin" || user.isAdmin) {
-      navigate("/admin");       // admin page route
+      navigate("/admin");       
     } else {
-      navigate("/home");        // normal user
+      navigate("/home");      
     }
 
     dispatch(resetStatus());
@@ -73,7 +71,6 @@ useEffect(() => {
             <h1 className="login-title text-center">LOGIN</h1>
 
             <form className="login-card">
-              {/* EMAIL */}
               <FormGroup className="login-field">
                 <Label className="login-label">EMAIL</Label>
                 <input
@@ -87,7 +84,6 @@ useEffect(() => {
                 <p className="login-error">{errors.email?.message}</p>
               </FormGroup>
 
-              {/* PASSWORD */}
               <FormGroup className="login-field">
                 <Label className="login-label">PASSWORD</Label>
                 <input
@@ -101,7 +97,6 @@ useEffect(() => {
                 <p className="login-error">{errors.password?.message}</p>
               </FormGroup>
 
-              {/* BACKEND LOGIN ERROR */}
               {isError && message && (
                 <p className="login-error" style={{ marginTop: "0.5rem" }}>
                   {message}

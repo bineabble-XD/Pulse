@@ -14,7 +14,6 @@ import { addUser } from "../features/PulseSlice";
 const API_BASE = "https://pulse-1-rke8.onrender.com";
 
 const Registeration = () => {
-  // form states
   const [name, setName] = useState("");
   const [lastName, setLastName] = useState("");
   const [username, setUsername] = useState("");
@@ -25,9 +24,8 @@ const Registeration = () => {
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("");
 
-  const [usernameStatus, setUsernameStatus] = useState(null); // null | "checking" | "ok" | "taken"
+  const [usernameStatus, setUsernameStatus] = useState(null); 
 
-  // password validation state
   const [passwordValidations, setPasswordValidations] = useState({
     lower: false,
     upper: false,
@@ -112,7 +110,6 @@ const Registeration = () => {
 
   return (
     <div className="page register-bg register-page">
-      {/* Top bar */}
       <header className="top-bar">
         <div className="brand-left">
           <img src={logo} alt="Pulse logo" className="brand-logo" />
@@ -124,253 +121,253 @@ const Registeration = () => {
         </Link>
       </header>
 
-      {/* Main centered content */}
       <main className="register-main">
         <h1 className="register-title text-center">REGISTRATION</h1>
 
-        {/* Big centered card */}
-        <Form className="register-card" onSubmit={submitForm(validate)}>
-          {/* NAME */}
-          <FormGroup className="register-field">
-            <Label className="register-label">NAME</Label>
-            <input
-              type="text"
-              className="form-control register-input"
-              {...register("name", {
-                value: name,
-                onChange: (e) => setName(e.target.value),
-              })}
-            />
-            <p className="register-error">{errors.name?.message}</p>
-          </FormGroup>
-
-          {/* LAST NAME */}
-          <FormGroup className="register-field">
-            <Label className="register-label">LAST NAME</Label>
-            <input
-              type="text"
-              className="form-control register-input"
-              {...register("lastName", {
-                value: lastName,
-                onChange: (e) => setLastName(e.target.value),
-              })}
-            />
-            <p className="register-error">{errors.lastName?.message}</p>
-          </FormGroup>
-
-          {/* USERNAME */}
-          <FormGroup className="register-field">
-            <Label className="register-label">USERNAME</Label>
-            <input
-              type="text"
-              className="form-control register-input"
-              {...register("username", {
-                value: username,
-                onChange: (e) => setUsername(e.target.value),
-              })}
-              onBlur={(e) => checkUsername(e.target.value)}
-            />
-            <p className="register-error">{errors.username?.message}</p>
-
-            {usernameStatus === "checking" && (
-              <small style={{ color: "#cccccc" }}>Checking username...</small>
-            )}
-            {usernameStatus === "taken" && (
-              <small style={{ color: "#ff4d4d" }}>
-                Username already taken
-              </small>
-            )}
-            {usernameStatus === "ok" && (
-              <small style={{ color: "#4dff88" }}>
-                Username is available
-              </small>
-            )}
-          </FormGroup>
-
-          {/* EMAIL */}
-          <FormGroup className="register-field">
-            <Label className="register-label">EMAIL</Label>
-            <input
-              type="email"
-              className="form-control register-input"
-              {...register("email", {
-                value: email,
-                onChange: (e) => setEmail(e.target.value),
-              })}
-            />
-            <p className="register-error">{errors.email?.message}</p>
-          </FormGroup>
-
-          {/* PASSWORD */}
-          <FormGroup className="register-field">
-            <Label className="register-label">PASSWORD</Label>
-            <div style={{ position: "relative" }}>
+        <div className="register-container">
+          <Form className="register-card" onSubmit={submitForm(validate)}>
+            <FormGroup className="register-field">
+              <Label className="register-label">NAME</Label>
               <input
-                type="password"
+                type="text"
                 className="form-control register-input"
-                {...register("password", {
-                  value: password,
-                  onChange: (e) => {
-                    setPassword(e.target.value);
-                    validatePassword(e.target.value);
-                  },
+                {...register("name", {
+                  value: name,
+                  onChange: (e) => setName(e.target.value),
                 })}
-                onFocus={() => setShowPasswordHints(true)}
-                onBlur={() => setShowPasswordHints(false)}
               />
+              <p className="register-error">{errors.name?.message}</p>
+            </FormGroup>
 
-              {showPasswordHints && (
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "100%",
-                    left: 0,
-                    marginTop: "6px",
-                    padding: "8px 10px",
-                    backgroundColor: "#fff",
-                    border: "1px solid #ddd",
-                    borderRadius: "6px",
-                    boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-                    fontSize: "12px",
-                    zIndex: 10,
-                    minWidth: "250px",
-                  }}
-                >
-                  <strong style={{ fontSize: "11px" }}>
-                    PASSWORD MUST CONTAIN:
-                  </strong>
-                  <ul
+            <FormGroup className="register-field">
+              <Label className="register-label">LAST NAME</Label>
+              <input
+                type="text"
+                className="form-control register-input"
+                {...register("lastName", {
+                  value: lastName,
+                  onChange: (e) => setLastName(e.target.value),
+                })}
+              />
+              <p className="register-error">{errors.lastName?.message}</p>
+            </FormGroup>
+
+            <FormGroup className="register-field">
+              <Label className="register-label">USERNAME</Label>
+              <input
+                type="text"
+                className="form-control register-input"
+                {...register("username", {
+                  value: username,
+                  onChange: (e) => setUsername(e.target.value),
+                })}
+                onBlur={(e) => checkUsername(e.target.value)}
+              />
+              <p className="register-error">{errors.username?.message}</p>
+
+              {usernameStatus === "checking" && (
+                <small style={{ color: "#cccccc" }}>Checking username...</small>
+              )}
+              {usernameStatus === "taken" && (
+                <small style={{ color: "#ff4d4d" }}>
+                  Username already taken
+                </small>
+              )}
+              {usernameStatus === "ok" && (
+                <small style={{ color: "#4dff88" }}>
+                  Username is available
+                </small>
+              )}
+            </FormGroup>
+
+            <FormGroup className="register-field">
+              <Label className="register-label">EMAIL</Label>
+              <input
+                type="email"
+                className="form-control register-input"
+                {...register("email", {
+                  value: email,
+                  onChange: (e) => setEmail(e.target.value),
+                })}
+              />
+              <p className="register-error">{errors.email?.message}</p>
+            </FormGroup>
+
+            <FormGroup className="register-field">
+              <Label className="register-label">PASSWORD</Label>
+              <div style={{ position: "relative" }}>
+                <input
+                  type="password"
+                  className="form-control register-input"
+                  {...register("password", {
+                    value: password,
+                    onChange: (e) => {
+                      setPassword(e.target.value);
+                      validatePassword(e.target.value);
+                    },
+                  })}
+                  onFocus={() => setShowPasswordHints(true)}
+                  onBlur={() => setShowPasswordHints(false)}
+                />
+
+                {showPasswordHints && (
+                  <div
                     style={{
-                      listStyle: "none",
-                      paddingLeft: 0,
+                      position: "absolute",
+                      top: "100%",
+                      left: 0,
                       marginTop: "6px",
-                      marginBottom: 0,
+                      padding: "8px 10px",
+                      backgroundColor: "#fff",
+                      border: "1px solid #ddd",
+                      borderRadius: "6px",
+                      boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                      fontSize: "12px",
+                      zIndex: 10,
+                      minWidth: "250px",
                     }}
                   >
-                    <li
+                    <strong style={{ fontSize: "11px" }}>
+                      PASSWORD MUST CONTAIN:
+                    </strong>
+                    <ul
                       style={{
-                        color: passwordValidations.lower ? "green" : "red",
+                        listStyle: "none",
+                        paddingLeft: 0,
+                        marginTop: "6px",
+                        marginBottom: 0,
                       }}
                     >
-                      {passwordValidations.lower ? "✔" : "✘"} At least one
-                      lowercase letter
-                    </li>
-                    <li
-                      style={{
-                        color: passwordValidations.upper ? "green" : "red",
-                      }}
-                    >
-                      {passwordValidations.upper ? "✔" : "✘"} At least one
-                      uppercase letter
-                    </li>
-                    <li
-                      style={{
-                        color: passwordValidations.number ? "green" : "red",
-                      }}
-                    >
-                      {passwordValidations.number ? "✔" : "✘"} At least one
-                      number
-                    </li>
-                    <li
-                      style={{
-                        color: passwordValidations.special ? "green" : "red",
-                      }}
-                    >
-                      {passwordValidations.special ? "✔" : "✘"} At least one
-                      special character
-                    </li>
-                    <li
-                      style={{
-                        color: passwordValidations.length ? "green" : "red",
-                      }}
-                    >
-                      {passwordValidations.length ? "✔" : "✘"} Minimum 8
-                      characters
-                    </li>
-                  </ul>
-                </div>
-              )}
-            </div>
-            <p className="register-error">{errors.password?.message}</p>
-          </FormGroup>
+                      <li
+                        style={{
+                          color: passwordValidations.lower
+                            ? "green"
+                            : "red",
+                        }}
+                      >
+                        {passwordValidations.lower ? "✔" : "✘"} At least one
+                        lowercase letter
+                      </li>
+                      <li
+                        style={{
+                          color: passwordValidations.upper
+                            ? "green"
+                            : "red",
+                        }}
+                      >
+                        {passwordValidations.upper ? "✔" : "✘"} At least one
+                        uppercase letter
+                      </li>
+                      <li
+                        style={{
+                          color: passwordValidations.number
+                            ? "green"
+                            : "red",
+                        }}
+                      >
+                        {passwordValidations.number ? "✔" : "✘"} At least one
+                        number
+                      </li>
+                      <li
+                        style={{
+                          color: passwordValidations.special
+                            ? "green"
+                            : "red",
+                        }}
+                      >
+                        {passwordValidations.special ? "✔" : "✘"} At least one
+                        special character
+                      </li>
+                      <li
+                        style={{
+                          color: passwordValidations.length
+                            ? "green"
+                            : "red",
+                        }}
+                      >
+                        {passwordValidations.length ? "✔" : "✘"} Minimum 8
+                        characters
+                      </li>
+                    </ul>
+                  </div>
+                )}
+              </div>
+              <p className="register-error">{errors.password?.message}</p>
+            </FormGroup>
 
-          {/* ADDRESS */}
-          <FormGroup className="register-field">
-            <Label className="register-label">ADDRESS</Label>
-            <input
-              type="text"
-              className="form-control register-input"
-              {...register("address", {
-                value: address,
-                onChange: (e) => setAddress(e.target.value),
-              })}
-            />
-            <p className="register-error">{errors.address?.message}</p>
-          </FormGroup>
+            <FormGroup className="register-field">
+              <Label className="register-label">ADDRESS</Label>
+              <input
+                type="text"
+                className="form-control register-input"
+                {...register("address", {
+                  value: address,
+                  onChange: (e) => setAddress(e.target.value),
+                })}
+              />
+              <p className="register-error">{errors.address?.message}</p>
+            </FormGroup>
 
-          {/* PHONE NUMBER */}
-          <FormGroup className="register-field">
-            <Label className="register-label">PHONE NUMBER</Label>
-            <input
-              type="text"
-              className="form-control register-input"
-              {...register("phoneNumber", {
-                value: phoneNumber,
-                onChange: (e) => setPhoneNumber(e.target.value),
-              })}
-            />
-            <p className="register-error">{errors.phoneNumber?.message}</p>
-          </FormGroup>
+            <FormGroup className="register-field">
+              <Label className="register-label">PHONE NUMBER</Label>
+              <input
+                type="text"
+                className="form-control register-input"
+                {...register("phoneNumber", {
+                  value: phoneNumber,
+                  onChange: (e) => setPhoneNumber(e.target.value),
+                })}
+              />
+              <p className="register-error">{errors.phoneNumber?.message}</p>
+            </FormGroup>
 
-          {/* AGE */}
-          <FormGroup className="register-field">
-            <Label className="register-label">AGE</Label>
-            <select
-              className="form-control register-input"
-              {...register("age", {
-                value: age,
-                onChange: (e) => setAge(e.target.value),
-              })}
-            >
-              <option value="">Select age</option>
-              {Array.from({ length: 83 }, (_, i) => 18 + i).map((a) => (
-                <option key={a} value={a}>
-                  {a}
-                </option>
-              ))}
-            </select>
-            <p className="register-error">{errors.age?.message}</p>
-          </FormGroup>
+            <FormGroup className="register-field">
+              <Label className="register-label">AGE</Label>
+              <select
+                className="form-control register-input"
+                {...register("age", {
+                  value: age,
+                  onChange: (e) => setAge(e.target.value),
+                })}
+              >
+                <option value="">Select age</option>
+                {Array.from({ length: 83 }, (_, i) => 18 + i).map((a) => (
+                  <option key={a} value={a}>
+                    {a}
+                  </option>
+                ))}
+              </select>
+              <p className="register-error">{errors.age?.message}</p>
+            </FormGroup>
 
-          {/* GENDER */}
-          <FormGroup className="register-field">
-            <Label className="register-label">GENDER</Label>
-            <select
-              className="form-control register-input"
-              {...register("gender", {
-                value: gender,
-                onChange: (e) => setGender(e.target.value),
-              })}
-            >
-              <option value="">Select gender</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="other">Other</option>
-            </select>
-            <p className="register-error">{errors.gender?.message}</p>
-          </FormGroup>
+            <FormGroup className="register-field">
+              <Label className="register-label">GENDER</Label>
+              <select
+                className="form-control register-input"
+                {...register("gender", {
+                  value: gender,
+                  onChange: (e) => setGender(e.target.value),
+                })}
+              >
+                <option value="">Select gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+              <p className="register-error">{errors.gender?.message}</p>
+            </FormGroup>
 
-          {/* SUBMIT */}
-          <FormGroup>
-            <Button
-              type="submit"
-              className="form-control register-submit"
-              color="dark"
-            >
-              SUBMIT
-            </Button>
-          </FormGroup>
-        </Form>
+            <FormGroup>
+              <Button
+                type="submit"
+                className="form-control register-submit"
+                color="dark"
+              >
+                SUBMIT
+              </Button>
+            </FormGroup>
+          </Form>
+        </div>
       </main>
     </div>
   );

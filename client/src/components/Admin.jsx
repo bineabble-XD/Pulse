@@ -1,4 +1,3 @@
-// src/components/Admin.jsx
 import React, { useState, useMemo, useEffect } from "react";
 import { useSelector } from "react-redux";
 import axios from "axios";
@@ -14,7 +13,6 @@ const Admin = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // ✅ Load members (admin-only route)
   useEffect(() => {
     if (!user) return;
 
@@ -36,7 +34,6 @@ const Admin = () => {
     fetchMembers();
   }, [user]);
 
-  // 🔥 DROP member handler
   const handleDropMember = async (memberId) => {
     const confirmDrop = window.confirm(
       "Are you sure you want to drop this member? This will delete their account and posts."
@@ -45,7 +42,6 @@ const Admin = () => {
 
     try {
       await axios.delete(`${API_BASE}/users/${memberId}`);
-      // remove from local state so UI updates instantly
       setMembers((prev) => prev.filter((m) => m._id !== memberId));
     } catch (err) {
       console.error("Delete user error:", err);
@@ -53,7 +49,6 @@ const Admin = () => {
     }
   };
 
-  // 🔍 Filter by search (id, name, email)
   const filteredMembers = useMemo(() => {
     if (!searchId.trim()) return members;
 
@@ -69,7 +64,6 @@ const Admin = () => {
   }, [members, searchId]);
 
   const getStatusLabel = (member) => {
-    // later you can replace this with a real isActive flag
     return "ACTIVE";
   };
 

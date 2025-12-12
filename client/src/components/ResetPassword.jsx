@@ -1,4 +1,3 @@
-// src/components/ResetPassword.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -46,7 +45,6 @@ const ResetPassword = () => {
       });
 
       setMsg(res.data.message || "Password reset successfully.");
-      // optional: go back to login after a short delay
       setTimeout(() => navigate("/login"), 1500);
     } catch (err) {
       console.error("Reset error:", err);
@@ -66,7 +64,6 @@ const ResetPassword = () => {
       <div className="reset-overlay" />
 
       <div className="reset-inner">
-        {/* Top Navigation */}
         <header className="reset-header">
           <div className="reset-logo-wrap">
             <img src={logoBg} alt="Pulse logo" className="reset-logo" />
@@ -78,7 +75,6 @@ const ResetPassword = () => {
           </button>
         </header>
 
-        {/* Center Card */}
         <main className="reset-main">
           <section className="reset-card">
             <h1 className="reset-title">RESET PASSWORD</h1>

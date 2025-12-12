@@ -1,4 +1,3 @@
-// src/app/store.jsx
 import { configureStore } from "@reduxjs/toolkit";
 import usersReducer from "../features/PulseSlice";
 

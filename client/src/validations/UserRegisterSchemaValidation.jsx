@@ -1,4 +1,3 @@
-// validations/UserRegisterSchemaValidation.js
 import * as yup from "yup";
 
 export const UserRegisterSchemaValidation = yup.object().shape({

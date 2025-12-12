@@ -1,4 +1,3 @@
-// src/components/Following.jsx
 import React, { useEffect, useState } from "react";
 import bgTexture from "../assets/7.png";
 import Navbar from "./Navbar";
@@ -16,13 +15,11 @@ const Following = () => {
   const [loadingFeed, setLoadingFeed] = useState(true);
   const [commentInputs, setCommentInputs] = useState({});
 
-  // 🔥 fullscreen image modal state
   const [imageModal, setImageModal] = useState({
     open: false,
     url: "",
   });
 
-  // DELETE post (optional, only for own posts)
   const handleDeletePost = async (postId) => {
     if (!user?._id) return;
 
@@ -41,7 +38,6 @@ const Following = () => {
     }
   };
 
-  // LIKE / UNLIKE
   const handleToggleLike = async (postId) => {
     if (!user?._id) return;
 
@@ -60,7 +56,6 @@ const Following = () => {
     }
   };
 
-  // COMMENT typing
   const handleCommentChange = (postId, value) => {
     setCommentInputs((prev) => ({
       ...prev,
@@ -68,7 +63,6 @@ const Following = () => {
     }));
   };
 
-  // COMMENT submit
   const handleAddComment = async (postId) => {
     if (!user?._id) return;
 
@@ -97,7 +91,6 @@ const Following = () => {
     }
   };
 
-  // 🔥 load FOLLOWING feed from backend
   useEffect(() => {
     const fetchFollowing = async () => {
       if (!user?._id) {
@@ -134,7 +127,6 @@ const Following = () => {
         <Navbar />
 
         <main className="home-content">
-          {/* Header card */}
           <section className="home-compose-wrapper">
             <div className="home-compose-card">
               <div className="home-compose-header">
@@ -163,7 +155,6 @@ const Following = () => {
             </div>
           </section>
 
-          {/* FOLLOWING feed */}
           <section className="home-feed">
             {loadingFeed ? (
               <p style={{ color: "white" }}>Loading following feed...</p>
@@ -279,7 +270,6 @@ const Following = () => {
                       )}
                     </footer>
 
-                    {/* COMMENTS */}
                     <div className="home-post-comments">
                       {comments.length > 0 && (
                         <div className="home-post-comments-list">
@@ -332,7 +322,6 @@ const Following = () => {
         </main>
       </div>
 
-      {/* 🔥 FULLSCREEN IMAGE MODAL */}
       {imageModal.open && (
         <div
           className="image-modal-backdrop"
