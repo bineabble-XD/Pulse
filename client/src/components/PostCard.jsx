@@ -1,4 +1,3 @@
-// src/components/PostCard.jsx
 import React from "react";
 import { FcLike } from "react-icons/fc";
 import { FaRegCommentDots } from "react-icons/fa";
@@ -89,7 +88,6 @@ const PostCard = ({
         </div>
       </header>
 
-      {/* media */}
       {post.mediaUrl && (
         <div className="home-note-media">
           {post.mediaType === "video" ? (
@@ -109,10 +107,8 @@ const PostCard = ({
         </div>
       )}
 
-      {/* text */}
       {post.text && <p className="home-note-text">{post.text}</p>}
 
-      {/* footer buttons */}
       <footer className="home-note-footer">
         <button
           type="button"
@@ -137,7 +133,6 @@ const PostCard = ({
           )}
         </button>
 
-        {/* EDIT */}
 {isAuthor && onEdit && (
   <button
     type="button"
@@ -148,7 +143,6 @@ const PostCard = ({
   </button>
 )}
 
-{/* DELETE */}
 {showDelete && isAuthor && (
   <button
     type="button"
@@ -161,7 +155,6 @@ const PostCard = ({
 
       </footer>
 
-      {/* comments */}
       <div className="home-post-comments">
         {comments.length > 0 && (
           <div className="home-post-comments-list">

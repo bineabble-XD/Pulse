@@ -1,20 +1,16 @@
-// src/components/login.test.jsx
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import Login from "./Login";
 
-// ======= MOCKS =======
 
-// mock react-redux
 import { useDispatch, useSelector } from "react-redux";
 vi.mock("react-redux", () => ({
   useDispatch: vi.fn(),
   useSelector: vi.fn(),
 }));
 
-// mock react-router-dom: keep actual stuff, override only useNavigate
 import { MemoryRouter, useNavigate } from "react-router-dom";
 vi.mock("react-router-dom", async () => {
   const actual = await vi.importActual("react-router-dom");
@@ -24,14 +20,12 @@ vi.mock("react-router-dom", async () => {
   };
 });
 
-// mock PulseSlice actions
 import { getUser, resetStatus } from "../features/PulseSlice";
 vi.mock("../features/PulseSlice", () => ({
   getUser: vi.fn((data) => ({ type: "users/getUser", payload: data })),
   resetStatus: vi.fn(() => ({ type: "users/resetStatus" })),
 }));
 
-// mock validation + resolver so they don't block form submit
 vi.mock("../validations/userSchemaValidation", () => ({
   UserSchemaValidation: {},
 }));
@@ -40,12 +34,10 @@ vi.mock("@hookform/resolvers/yup", () => ({
   yupResolver: () => () => ({ values: {}, errors: {} }),
 }));
 
-// mock logo asset (Vitest wants default key)
 vi.mock("../assets/LogoBg.png", () => ({
   default: "logo.png",
 }));
 
-// ======= HELPERS =======
 
 const makeState = (overrides = {}) => ({
   user: null,
@@ -69,12 +61,10 @@ beforeEach(() => {
   useNavigate.mockReturnValue(mockNavigate);
 });
 
-// always render inside a Router
 const renderWithRouter = (ui) => {
   return render(<MemoryRouter>{ui}</MemoryRouter>);
 };
 
-// ======= TESTS =======
 
 describe("Pulse Login Component", () => {
   it("renders at least one text input and a login button", () => {
@@ -103,7 +93,6 @@ describe("Pulse Login Component", () => {
     fireEvent.click(loginButton);
 
     await waitFor(() => {
-      // just check that getUser was called and email is correct
       expect(getUser).toHaveBeenCalled();
 
       const firstCallArg = getUser.mock.calls[0][0];

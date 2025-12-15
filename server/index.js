@@ -13,11 +13,9 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 6969;
 
-// 🔐 JWT secret (can be overridden in Docker / .env)
 const JWT_SECRET =
   process.env.JWT_SECRET || "super-secret-pulse-key-change-this";
 
-// --- DB connection ---
 const MONGO_URI =
   process.env.MONGO_URI ||
   "mongodb+srv://admin:admin@students.ll5gldx.mongodb.net/PulseDb?appName=students";
@@ -29,7 +27,6 @@ const getBaseUrl = (req) => {
   return `${protocol}://${host}`;
 };
 
-// 🔐 Simple JWT auth middleware
 const authMiddleware = (req, res, next) => {
   const authHeader = req.headers.authorization || "";
 
@@ -40,7 +37,7 @@ const authMiddleware = (req, res, next) => {
   const token = authHeader.split(" ")[1];
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET); // { userId, email, username, role }
+    const decoded = jwt.verify(token, JWT_SECRET);
     req.user = decoded;
     next();
   } catch (err) {
@@ -49,23 +46,20 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
-// === SERVE UPLOADED IMAGES ===
 app.use("/uploads", express.static("uploads"));
 
-// === MULTER SETUP FOR IMAGE UPLOAD ===
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/"); // store images inside /uploads folder
+    cb(null, "uploads/");
   },
   filename: (req, file, cb) => {
     const safeName = file.originalname.replace(/\s+/g, "");
-    cb(null, Date.now() + "-" + safeName); // unique filename
+    cb(null, Date.now() + "-" + safeName); 
   },
 });
 
 const upload = multer({ storage });
 
-// --- DB connection ---
 mongoose
   .connect(MONGO_URI)
   .then(() => {
@@ -79,11 +73,7 @@ mongoose
     console.log("Database connection error: " + error);
   });
 
-/* ===========================================================
-                     USER ROUTES
-=========================================================== */
 
-// POST /register  -> create user with hashed password
 app.post("/register", async (req, res) => {
   try {
     const {
@@ -102,13 +92,11 @@ app.post("/register", async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // check email
     const existingEmail = await UserModel.findOne({ email });
     if (existingEmail) {
       return res.status(400).json({ message: "Email already in use" });
     }
 
-    // check username
     const existingUsername = await UserModel.findOne({
       username: username.toLowerCase(),
     });
@@ -116,7 +104,6 @@ app.post("/register", async (req, res) => {
       return res.status(400).json({ message: "Username already taken" });
     }
 
-    // 🔐 hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await UserModel.create({
@@ -131,7 +118,6 @@ app.post("/register", async (req, res) => {
       username: username.toLowerCase(),
     });
 
-    // don't send password back
     const userObj = user.toObject();
     delete userObj.password;
 
@@ -145,7 +131,6 @@ app.post("/register", async (req, res) => {
   }
 });
 
-// GET /check-username?username=foo
 app.get("/check-username", async (req, res) => {
   try {
     const { username } = req.query;
@@ -173,7 +158,6 @@ app.get("/check-username", async (req, res) => {
   }
 });
 
-// POST /login  -> check credentials + return JWT
 app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -196,7 +180,6 @@ app.post("/login", async (req, res) => {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    // create JWT payload (role from isAdmin)
     const payload = {
       userId: user._id,
       email: user.email,
@@ -206,7 +189,6 @@ app.post("/login", async (req, res) => {
 
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
 
-    // don't send password back
     const userObj = user.toObject();
     delete userObj.password;
 
@@ -221,10 +203,8 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// GET /users  -> admin only, list all registered users (no password)
 app.get("/users", authMiddleware, async (req, res) => {
   try {
-    // only admins can see all users
     if (req.user.role !== "admin") {
       return res.status(403).json({ message: "Admins only" });
     }
@@ -240,7 +220,6 @@ app.get("/users", authMiddleware, async (req, res) => {
   }
 });
 
-// GET /auth/me -> verify token and return fresh user (no password)
 app.get("/auth/me", authMiddleware, async (req, res) => {
   try {
     const userId = req.user.userId;
@@ -305,7 +284,6 @@ app.post(
   }
 );
 
-// DELETE /posts/:id  -> only author can delete (author from token)
 app.delete("/posts/:id", authMiddleware, async (req, res) => {
   try {
     const postId = req.params.id;
@@ -331,7 +309,6 @@ app.delete("/posts/:id", authMiddleware, async (req, res) => {
   }
 });
 
-// POST /posts/:id/like  -> toggle like/unlike (user from token)
 app.post("/posts/:id/like", authMiddleware, async (req, res) => {
   try {
     const postId = req.params.id;
@@ -353,10 +330,8 @@ app.post("/posts/:id/like", authMiddleware, async (req, res) => {
     const alreadyLiked = post.likes.some((id) => id.toString() === userId);
 
     if (alreadyLiked) {
-      // UNLIKE
       post.likes = post.likes.filter((id) => id.toString() !== userId);
     } else {
-      // LIKE
       post.likes.push(userId);
     }
 
@@ -372,7 +347,6 @@ app.post("/posts/:id/like", authMiddleware, async (req, res) => {
   }
 });
 
-// POST /posts/:id/comment  -> add comment { text } (user from token)
 app.post("/posts/:id/comment", authMiddleware, async (req, res) => {
   try {
     const postId = req.params.id;
@@ -397,7 +371,6 @@ app.post("/posts/:id/comment", authMiddleware, async (req, res) => {
 
     await post.save();
 
-    // re-fetch with population so frontend gets full author info
     const populated = await PostModel.findById(post._id)
       .populate("author", "username fname lname profilePic")
       .populate("comments.author", "username fname lname profilePic");
@@ -412,7 +385,6 @@ app.post("/posts/:id/comment", authMiddleware, async (req, res) => {
   }
 });
 
-// GET /posts/discover  -> all posts, newest first (public)
 app.get("/posts/discover", async (req, res) => {
   try {
     const posts = await PostModel.find({})
@@ -428,7 +400,6 @@ app.get("/posts/discover", async (req, res) => {
   }
 });
 
-// GET /posts/following/:userId  -> posts ONLY from people the user follows
 app.get("/posts/following/:userId", authMiddleware, async (req, res) => {
   try {
     const { userId } = req.params;
@@ -463,7 +434,6 @@ app.get("/posts/following/:userId", authMiddleware, async (req, res) => {
   }
 });
 
-// GET /feed/:userId  -> user + following feed (protected)
 app.get("/feed/:userId", authMiddleware, async (req, res) => {
   try {
     const { userId } = req.params;
@@ -492,11 +462,7 @@ app.get("/feed/:userId", authMiddleware, async (req, res) => {
   }
 });
 
-/* ===========================================================
-                     PROFILE ROUTES
-=========================================================== */
 
-// GET /users/:username/profile  (public profile)
 app.get("/users/:username/profile", async (req, res) => {
   try {
     const { username } = req.params;
@@ -518,15 +484,10 @@ app.get("/users/:username/profile", async (req, res) => {
   }
 });
 
-/* ===========================================================
-                     FOLLOW / UNFOLLOW
-=========================================================== */
-
-// POST /users/:id/follow  { targetId }
 app.post("/users/:id/follow", authMiddleware, async (req, res) => {
   try {
-    const { id } = req.params; // current user (URL)
-    const { targetId } = req.body; // user to follow
+    const { id } = req.params;
+    const { targetId } = req.body; 
     const currentUserId = req.user.userId;
 
     if (currentUserId !== id) {
@@ -561,7 +522,6 @@ app.post("/users/:id/follow", authMiddleware, async (req, res) => {
       await target.save();
     }
 
-    // 🔐 don't send password hash back
     const userObj = user.toObject();
     delete userObj.password;
 
@@ -572,7 +532,6 @@ app.post("/users/:id/follow", authMiddleware, async (req, res) => {
   }
 });
 
-// POST /users/:id/unfollow  { targetId }
 app.post("/users/:id/unfollow", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
@@ -597,7 +556,6 @@ app.post("/users/:id/unfollow", authMiddleware, async (req, res) => {
     await user.save();
     await target.save();
 
-    // 🔐 don't send password hash back
     const userObj = user.toObject();
     delete userObj.password;
 
@@ -608,11 +566,8 @@ app.post("/users/:id/unfollow", authMiddleware, async (req, res) => {
   }
 });
 
-/* ===========================================================
-        🔥 UPLOAD PROFILE PICTURE ROUTE
-=========================================================== */
 
-// POST /users/:id/profile-pic
+
 app.post(
   "/users/:id/profile-pic",
   authMiddleware,
@@ -645,7 +600,6 @@ app.post(
         return res.status(404).json({ message: "User not found" });
       }
 
-      // 🔐 don't send password
       const userObj = user.toObject();
       delete userObj.password;
 
@@ -660,11 +614,7 @@ app.post(
   }
 );
 
-/* ===========================================================
-              FOLLOWING / FOLLOWERS LISTS
-=========================================================== */
 
-// GET /users/:id/following-list -> who this user follows
 app.get("/users/:id/following-list", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
@@ -693,7 +643,6 @@ app.get("/users/:id/following-list", authMiddleware, async (req, res) => {
   }
 });
 
-// GET /users/:id/followers-list -> who follows this user
 app.get("/users/:id/followers-list", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
@@ -758,26 +707,21 @@ app.put("/posts/:id", authMiddleware, async (req, res) => {
   }
 });
 
-// DELETE /users/:id -> admin only, removes user and their posts
 app.delete("/users/:id", authMiddleware, async (req, res) => {
   try {
-    // only admins can drop users
     if (req.user.role !== "admin") {
       return res.status(403).json({ message: "Admins only" });
     }
 
     const userId = req.params.id;
 
-    // check user exists
     const user = await UserModel.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // delete all posts from this user (optional but usually desired)
     await PostModel.deleteMany({ author: userId });
 
-    // delete the user
     await UserModel.findByIdAndDelete(userId);
 
     return res.json({ message: "User and related posts deleted" });
@@ -787,7 +731,6 @@ app.delete("/users/:id", authMiddleware, async (req, res) => {
   }
 });
 
-// POST /reset-password  { email, newPassword }
 app.post("/reset-password", async (req, res) => {
   try {
     const { email, newPassword } = req.body;
@@ -803,7 +746,6 @@ app.post("/reset-password", async (req, res) => {
       return res.status(404).json({ message: "User with this email not found" });
     }
 
-    // hash the new password
     const hashed = await bcrypt.hash(newPassword, 10);
 
     user.password = hashed;

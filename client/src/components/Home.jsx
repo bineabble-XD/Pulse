@@ -1,4 +1,3 @@
-// src/components/Home.jsx
 import React, { useState, useEffect } from "react";
 import bgTexture from "../assets/3.png";
 import Navbar from "./Navbar";
@@ -6,21 +5,19 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-// 🔹 icons
 import { FcLike } from "react-icons/fc";
 import { FaRegCommentDots } from "react-icons/fa";
 import { MdModeEdit, MdDeleteOutline } from "react-icons/md";
 
 const API_BASE = "https://pulse-1-rke8.onrender.com";
 
-// 🔹 helper to format createdAt
 const formatDateTime = (isoString) => {
   if (!isoString) return "";
   const d = new Date(isoString);
   if (isNaN(d.getTime())) return "";
 
   const day = String(d.getDate()).padStart(2, "0");
-  const monthShort = d.toLocaleString("en", { month: "short" }); // Dec, Jan, etc.
+  const monthShort = d.toLocaleString("en", { month: "short" });
   const hours = String(d.getHours()).padStart(2, "0");
   const mins = String(d.getMinutes()).padStart(2, "0");
 
@@ -34,10 +31,8 @@ const Home = () => {
   const [posts, setPosts] = useState([]);
   const [newNote, setNewNote] = useState("");
 
-  // 💬 location text (what you already had)
   const [location, setLocation] = useState("");
 
-  // 📍 NEW: numeric coordinates
   const [lat, setLat] = useState(null);
   const [lon, setLon] = useState(null);
 
@@ -51,11 +46,9 @@ const Home = () => {
     url: "",
   });
 
-  // 🔹 edit state
   const [editingPostId, setEditingPostId] = useState(null);
   const [editText, setEditText] = useState("");
 
-  // DELETE post – no authorId in body, backend uses token
   const handleDeletePost = async (postId) => {
     if (!user?._id) return;
 
@@ -71,7 +64,6 @@ const Home = () => {
     }
   };
 
-  // LIKE / UNLIKE – no userId in body
   const handleToggleLike = async (postId) => {
     if (!user?._id) return;
 
@@ -87,7 +79,6 @@ const Home = () => {
     }
   };
 
-  // COMMENT typing
   const handleCommentChange = (postId, value) => {
     setCommentInputs((prev) => ({
       ...prev,
@@ -95,7 +86,6 @@ const Home = () => {
     }));
   };
 
-  // COMMENT submit – remove userId, backend uses JWT
   const handleAddComment = async (postId) => {
     if (!user?._id) return;
 
@@ -123,25 +113,21 @@ const Home = () => {
     }
   };
 
-  // 🔹 start editing a post
   const startEditingPost = (post) => {
     if (!post || !post._id) return;
     setEditingPostId(post._id);
     setEditText(post.text || "");
   };
 
-  // 🔹 cancel editing
   const cancelEditingPost = () => {
     setEditingPostId(null);
     setEditText("");
   };
 
-  // 🔹 save edited post (text only)
   const handleSaveEdit = async (postId) => {
     if (!user?._id) return;
 
     const trimmed = (editText || "").trim();
-    // if (!trimmed) return; // uncomment to block empty edits
 
     try {
       const res = await axios.put(`${API_BASE}/posts/${postId}`, {
@@ -162,7 +148,6 @@ const Home = () => {
     }
   };
 
-  // 🌍 NEW: detect current location and fill lat/lon + location text
   const handleDetectLocation = () => {
     if (!navigator.geolocation) {
       alert("Geolocation is not supported by your browser.");
@@ -174,7 +159,6 @@ const Home = () => {
         const { latitude, longitude } = position.coords;
         setLat(latitude);
         setLon(longitude);
-        // you can format this however you like
         setLocation(`${latitude}, ${longitude}`);
       },
       (error) => {
@@ -184,7 +168,6 @@ const Home = () => {
     );
   };
 
-  // load DISCOVER feed (public)
   useEffect(() => {
     const fetchDiscover = async () => {
       try {
@@ -201,7 +184,6 @@ const Home = () => {
     fetchDiscover();
   }, []);
 
-  // CREATE POST – send location + coordinates
   const handleSubmit = async (e) => {
     e.preventDefault();
     const trimmed = newNote.trim();
@@ -251,7 +233,6 @@ const Home = () => {
         <Navbar />
 
         <main className="home-content">
-          {/* Compose card */}
           <section className="home-compose-wrapper">
             <form className="home-compose-card" onSubmit={handleSubmit}>
               <div className="home-compose-header">
@@ -283,7 +264,6 @@ const Home = () => {
                 onChange={(e) => setNewNote(e.target.value)}
               />
 
-              {/* Location input (optional) */}
               <input
                 type="text"
                 className="home-compose-location"
@@ -292,7 +272,6 @@ const Home = () => {
                 onChange={(e) => setLocation(e.target.value)}
               />
 
-              {/* 📍 Button to auto-detect GPS */}
               <button
                 type="button"
                 className="home-detect-location-btn"
@@ -302,7 +281,6 @@ const Home = () => {
                 Use My Current Location
               </button>
 
-              {/* Optional Google Maps preview when coords are available */}
               {lat != null && lon != null && (
                 <div style={{ marginTop: "10px", borderRadius: "12px", overflow: "hidden" }}>
                   <iframe
@@ -345,7 +323,6 @@ const Home = () => {
             </form>
           </section>
 
-          {/* Feed (DISCOVER) */}
           <section className="home-feed">
             {loadingFeed ? (
               <p style={{ color: "white" }}>Loading feed...</p>
@@ -389,7 +366,6 @@ const Home = () => {
 
                       <div className="home-note-header-text">
                         <div className="home-note-header-top">
-                          {/* username clickable to /u/:username */}
                           <span
                             className="home-note-username"
                             style={{ cursor: "pointer" }}
@@ -449,7 +425,6 @@ const Home = () => {
                       </div>
                     )}
 
-                    {/* TEXT / EDIT MODE */}
                     {!isEditing && post.text && (
                       <p className="home-note-text">{post.text}</p>
                     )}
@@ -481,7 +456,6 @@ const Home = () => {
                     )}
 
                     <footer className="home-note-footer">
-                      {/* LIKE */}
                       <button
                         type="button"
                         className={`home-note-icon-btn ${
@@ -512,7 +486,6 @@ const Home = () => {
                         )}
                       </button>
 
-                      {/* EDIT & DELETE – author only */}
                       {isAuthor && (
                         <>
                           <button
@@ -536,7 +509,6 @@ const Home = () => {
                       )}
                     </footer>
 
-                    {/* COMMENTS SECTION */}
                     <div className="home-post-comments">
                       {comments.length > 0 && (
                         <div className="home-post-comments-list">
@@ -586,7 +558,6 @@ const Home = () => {
         </main>
       </div>
 
-      {/* fullscreen image modal */}
       {imageModal.open && (
         <div
           className="image-modal-backdrop"

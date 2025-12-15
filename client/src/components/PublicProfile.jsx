@@ -22,7 +22,6 @@ const formatDateTime = (isoString) => {
 };
 
 const PublicProfile = () => {
-  // /u/:username
   const { username } = useParams();
   const { user: currentUser } = useSelector((state) => state.users);
 
@@ -40,9 +39,7 @@ const PublicProfile = () => {
   const isOwnProfile =
     currentUser && profileUser && currentUser._id === profileUser._id;
 
-  // ============================
-  // FETCH USER + POSTS
-  // ============================
+
   useEffect(() => {
     const fetchProfile = async () => {
       if (!username) return;
@@ -61,7 +58,6 @@ const PublicProfile = () => {
         setProfileUser(fetchedUser);
         setPosts(fetchedPosts);
 
-        // figure out if currentUser already follows this profile
         if (currentUser?._id && fetchedUser?._id) {
           const followingArray = currentUser.following || [];
           const already = followingArray.some((id) => {
@@ -89,25 +85,22 @@ const PublicProfile = () => {
     fetchProfile();
   }, [username, currentUser?._id]);
 
-  // ============================
-  // FOLLOW / UNFOLLOW
-  // ============================
+
+
   const handleToggleFollow = async () => {
     if (!currentUser?._id || !profileUser?._id) return;
-    if (isOwnProfile) return; // just in case
+    if (isOwnProfile) return;
 
     const myId = currentUser._id;
     const targetId = profileUser._id;
 
     try {
       if (isFollowing) {
-        // UNFOLLOW
         await axios.post(`${API_BASE}/users/${myId}/unfollow`, {
           targetId,
         });
 
         setIsFollowing(false);
-        // update local followers list
         setProfileUser((prev) => {
           if (!prev) return prev;
           const prevFollowers = prev.followers || [];
@@ -119,17 +112,14 @@ const PublicProfile = () => {
           return { ...prev, followers: newFollowers };
         });
       } else {
-        // FOLLOW
         await axios.post(`${API_BASE}/users/${myId}/follow`, {
           targetId,
         });
 
         setIsFollowing(true);
-        // update local followers list
         setProfileUser((prev) => {
           if (!prev) return prev;
           const prevFollowers = prev.followers || [];
-          // avoid duplicates
           const already = prevFollowers.some((f) => {
             if (typeof f === "string") return f === myId;
             if (f?._id) return f._id === myId;
@@ -148,10 +138,7 @@ const PublicProfile = () => {
     }
   };
 
-  // ============================
-  // LIKE
-  // ============================
-  const handleToggleLike = async (postId) => {
+    const handleToggleLike = async (postId) => {
     if (!currentUser?._id) return;
 
     try {
@@ -165,9 +152,6 @@ const PublicProfile = () => {
     }
   };
 
-  // ============================
-  // COMMENT
-  // ============================
   const handleAddComment = async (postId) => {
     if (!currentUser?._id) return;
 
@@ -196,9 +180,6 @@ const PublicProfile = () => {
     }));
   };
 
-  // ============================
-  // DELETE POST
-  // ============================
   const handleDeletePost = async (postId) => {
     if (!currentUser?._id) return;
     if (!window.confirm("Delete this post?")) return;
@@ -211,9 +192,7 @@ const PublicProfile = () => {
     }
   };
 
-  // ============================
-  // EDIT POST
-  // ============================
+
   const startEditingPost = (post) => {
     if (!post || !post._id) return;
     setEditingPostId(post._id);
@@ -245,9 +224,7 @@ const PublicProfile = () => {
     }
   };
 
-  // ============================
-  // RENDER STATES
-  // ============================
+
   if (loading) {
     return (
       <div
@@ -315,7 +292,6 @@ const PublicProfile = () => {
         <Navbar />
 
         <main className="profile-content">
-          {/* LEFT: profile card + FOLLOW BUTTON */}
           <section className="profile-sidebar">
             <div className="profile-avatar-wrap">
               <div className="profile-avatar-circle">
@@ -361,7 +337,6 @@ const PublicProfile = () => {
             </div>
           </section>
 
-          {/* RIGHT: posts grid (same style as Home/Profile) */}
           <section className="profile-feed">
             {posts.length === 0 ? (
               <p className="profile-empty-text">

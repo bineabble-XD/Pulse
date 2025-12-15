@@ -46,9 +46,6 @@
   background-attachment: fixed;
 }
 
-
-
-
 .top-bar {
   width: 100%;
   display: flex;
@@ -86,8 +83,6 @@
   text-decoration: none;
   letter-spacing: 2px;
 }
-
-
 
 
 .hero-section {
@@ -139,32 +134,29 @@
   justify-content: center;
 }
 
-/* Title centered, bigger */
 .register-title {
   color: #ffe92c;
-  font-size: 44px;        /* bigger title */
+  font-size: 44px;     
   font-weight: 900;
   text-align: center;
   letter-spacing: 2px;
   margin-bottom: 25px;
 }
 
-/* Larger, centered card */
 .register-card {
   background: rgba(0, 0, 0, 0.85);
   padding: 40px 50px;
   border-radius: 35px;
 
-  width: 550px;          /* 🔥 wider frame */
-  max-width: 90%;        /* responsive */
-  min-height: 650px;     /* 🔥 taller so all fields fit cleanly */
+  width: 550px;          
+  max-width: 90%;        
+  min-height: 650px;     
   display: flex;
   flex-direction: column;
   gap: 16px;
-  margin-top: 40px;      /* push down slightly from header */
+  margin-top: 40px;      
 }
 
-/* fields */
 .register-field {
   display: flex;
   flex-direction: column;
@@ -209,9 +201,6 @@
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
 }
 
-
-/* ===== LOGIN PAGE ===== */
-
 .login-page {
   position: relative;
 }
@@ -233,7 +222,6 @@
   text-transform: uppercase;
 }
 
-/* Black rounded card */
 .login-card {
   background: rgba(0, 0, 0, 0.85);
   padding: 30px 40px 36px;
@@ -245,7 +233,6 @@
   gap: 12px;
 }
 
-/* fields */
 .login-field {
   display: flex;
   flex-direction: column;
@@ -275,7 +262,6 @@
   margin-top: 2px;
 }
 
-/* Remember me */
 .login-remember {
   display: flex;
   align-items: center;
@@ -287,7 +273,6 @@
   font-size: 13px;
 }
 
-/* yellow login button */
 .login-submit {
   margin-top: 10px;
   border-radius: 999px;
@@ -299,7 +284,6 @@
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
 }
 
-/* bottom links */
 .login-bottom-text {
   color: #ffffff;
   font-size: 13px;
@@ -317,9 +301,6 @@
 }
 
 
-/* =======================
-   ADMIN PAGE
-   ======================= */
 
 .admin-page {
   min-height: 100vh;
@@ -329,7 +310,6 @@
     "Segoe UI", sans-serif;
 }
 
-/* Top bar */
 
 .admin-header {
   display: flex;
@@ -408,7 +388,6 @@
   color: #ff7070;
 }
 
-/* Content */
 
 .admin-content {
   padding: 32px 48px 56px;
@@ -432,7 +411,6 @@
   margin-bottom: 18px;
 }
 
-/* Table */
 
 .admin-table-wrapper {
   overflow-x: auto;
@@ -486,8 +464,6 @@
   color: #777777;
 }
 
-/* Status pill & Drop button */
-
 .admin-status-pill {
   display: inline-flex;
   align-items: center;
@@ -534,7 +510,6 @@
   box-shadow: 0 4px 10px rgba(255, 230, 0, 0.4);
 }
 
-/* Search section */
 
 .admin-search-section {
   margin-top: 28px;
@@ -607,11 +582,6 @@
   transform: translateY(1px) scale(0.98);
 }
 
-
-/* =======================
-   PROFILE PAGE
-   ======================= */
-
 .profile-page {
   min-height: 100vh;
   background-size: cover;
@@ -639,7 +609,6 @@
   z-index: 1;
 }
 
-/* Top bar */
 
 .profile-header {
   display: flex;
@@ -717,7 +686,6 @@
   color: #ff7070;
 }
 
-/* Layout */
 
 .profile-content {
   display: grid;
@@ -726,7 +694,6 @@
   padding: 32px 48px 56px;
 }
 
-/* Sidebar */
 
 .profile-sidebar {
   background: rgba(5, 5, 5, 0.9);
@@ -802,7 +769,6 @@
   font-size: 12px;
 }
 
-/* Feed */
 
 .profile-feed {
   display: grid;
@@ -886,7 +852,6 @@
   display: block;
 }
 
-/* Responsive */
 
 @media (max-width: 960px) {
   .profile-content {
@@ -909,9 +874,7 @@
 }
 
 
-/* =======================
-   HOME PAGE (modern)
-   ======================= */
+
 
 .home-page {
   min-height: 100vh;
@@ -925,16 +888,10 @@
 }
 
 
-
-
-
-
 .home-inner {
   position: relative;
   z-index: 1;
 }
-
-/* Optional top bar for home (if you use it) */
 
 .home-header {
   display: flex;
@@ -1016,7 +973,6 @@
   color: #ff7070;
 }
 
-/* Layout */
 
 .home-content {
   padding: 28px 48px 56px;
@@ -1024,8 +980,6 @@
   flex-direction: column;
   gap: 28px;
 }
-
-/* Compose section */
 
 .home-compose-wrapper {
   display: flex;
@@ -1070,7 +1024,7 @@
   font-size: 14px;
 }
 
-/* textarea */
+
 
 .home-compose-input {
   margin-top: 4px;
@@ -1091,8 +1045,6 @@
   color: #6b7280;
 }
 
-/* location input */
-
 .home-compose-location {
   width: 100%;
   border-radius: 999px;
@@ -1108,8 +1060,6 @@
 .home-compose-location::placeholder {
   color: #6b7280;
 }
-
-/* footer */
 
 .home-compose-footer {
   margin-top: 6px;
@@ -1160,8 +1110,6 @@
   text-overflow: ellipsis;
 }
 
-/* POST button */
-
 .home-compose-btn {
   border: none;
   cursor: pointer;
@@ -1187,8 +1135,6 @@
   box-shadow: 0 8px 18px rgba(255, 230, 0, 0.6);
 }
 
-
-/* ===== NOTES FEED / POST CARDS ===== */
 
 .home-feed {
   display: grid;
@@ -1218,7 +1164,7 @@
   border-color: rgba(255, 230, 0, 0.35);
 }
 
-/* header */
+
 
 .home-note-header {
   display: flex;
@@ -1263,7 +1209,6 @@
   font-size: 13px;
 }
 
-/* meta row: location + time */
 .home-note-meta {
   display: inline-flex;
   align-items: center;
@@ -1285,7 +1230,6 @@
   opacity: 0.85;
 }
 
-/* media */
 
 .home-note-media {
   margin-top: 4px;
@@ -1303,7 +1247,6 @@
   object-fit: cover;
 }
 
-/* text */
 
 .home-note-text {
   font-size: 12px;
@@ -1312,7 +1255,6 @@
   margin-top: 2px;
 }
 
-/* EDIT MODE */
 
 .home-note-edit {
   margin-top: 4px;
@@ -1361,7 +1303,7 @@
   color: #e5e7eb;
 }
 
-/* footer buttons */
+
 
 .home-note-footer {
   margin-top: 6px;
@@ -1408,7 +1350,7 @@
   color: #e5e7eb;
 }
 
-/* comments */
+
 
 .home-post-comments {
   margin-top: 0.75rem;
@@ -1479,7 +1421,6 @@
   box-shadow: 0 6px 16px rgba(250, 204, 21, 0.8);
 }
 
-/* responsive tweaks for feed */
 
 @media (max-width: 1024px) {
   .home-feed {
@@ -1506,10 +1447,6 @@
 }
 
 
-/* =======================
-   RESET PASSWORD PAGE
-   ======================= */
-
 .reset-page {
   min-height: 100vh;
   background-size: cover;
@@ -1535,7 +1472,6 @@
   flex-direction: column;
 }
 
-/* HEADER */
 
 .reset-header {
   display: flex;
@@ -1571,7 +1507,6 @@
   font-size: 15px;
 }
 
-/* MAIN CARD */
 
 .reset-main {
   flex: 1;
@@ -1599,7 +1534,6 @@
   margin-bottom: 24px;
 }
 
-/* FORM */
 
 .reset-form {
   display: flex;
@@ -1655,7 +1589,6 @@
 }
 
 
-/* ===== SHARED AVATARS, MODALS, FOLLOW LIST, ETC ===== */
 
 .profile-avatar-image {
   width: 140px;
@@ -1679,7 +1612,6 @@
   object-fit: cover;
 }
 
-/* Full-screen image modal */
 .image-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -1716,7 +1648,6 @@
   cursor: pointer;
 }
 
-/* Follow modal */
 
 .follow-modal-backdrop {
   position: fixed;
@@ -1799,7 +1730,6 @@
   text-decoration: underline;
 }
 
-/* extra meta line if you use it somewhere */
 
 .post-meta {
   display: flex;

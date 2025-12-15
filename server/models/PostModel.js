@@ -1,4 +1,3 @@
-// models/PostModel.js
 import mongoose from "mongoose";
 
 const PostSchema = new mongoose.Schema(
@@ -11,16 +10,13 @@ const PostSchema = new mongoose.Schema(
 
     text: { type: String, default: "" },
     mediaUrl: { type: String, default: "" },
-    mediaType: { type: String, default: "" }, // "image" | "video"
+    mediaType: { type: String, default: "" }, 
 
-    // 📍 optional location string ("Salalah", or "23.12, 55.19")
     location: { type: String, default: "" },
 
-    // 📌 NEW: numerical GPS coordinates
     latitude: { type: Number, default: null },
     longitude: { type: Number, default: null },
 
-    // 👍 likes
     likes: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -28,7 +24,6 @@ const PostSchema = new mongoose.Schema(
       },
     ],
 
-    // 💬 comments
     comments: [
       {
         author: {
@@ -45,4 +40,4 @@ const PostSchema = new mongoose.Schema(
 );
 
 const PostModel = mongoose.model("Post", PostSchema, "posts");
-export default PostModel; // 👈 correct export
+export default PostModel; 

@@ -6,7 +6,6 @@ export default function LandingPage() {
   return (
     <div className="page landing-bg landing-page">
 
-      {/* Top navigation bar */}
       <header className="top-bar">
         <div className="brand-left">
           <img src={logo} alt="Pulse logo" className="brand-logo" />
@@ -18,7 +17,6 @@ export default function LandingPage() {
         </Link>
       </header>
 
-      {/* Center content */}
       <main className="hero-section">
         <h1 className="hero-text">
           PULSE HELPS YOU

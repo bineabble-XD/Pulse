@@ -1,4 +1,3 @@
-// src/components/AdminNavbar.jsx
 import React from "react";
 import logoBg from "../assets/LogoBg.png";
 import { useDispatch } from "react-redux";
@@ -25,7 +24,6 @@ const AdminNavbar = () => {
       </div>
 
       <nav className="home-nav">
-        {/* Only ADMIN PANEL here */}
         <button
           className={`home-nav-link ${
             isActive("/admin") ? "home-nav-link--active" : ""
@@ -35,7 +33,6 @@ const AdminNavbar = () => {
           ADMIN PANEL
         </button>
 
-        {/* And LOG OUT */}
         <button
           className="home-nav-link home-nav-link--danger"
           onClick={handleLogout}

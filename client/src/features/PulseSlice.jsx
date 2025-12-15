@@ -1,12 +1,9 @@
-// src/features/PulseSlice.jsx
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
 const API_BASE = "https://pulse-1-rke8.onrender.com";
 
-// === THUNKS =======================================================
 
-// REGISTER
 export const addUser = createAsyncThunk(
   "users/addUser",
   async (udata, { rejectWithValue }) => {
@@ -22,13 +19,12 @@ export const addUser = createAsyncThunk(
   }
 );
 
-// LOGIN  -> backend returns { message, token, user }
 export const getUser = createAsyncThunk(
   "users/getUser",
   async (udata, { rejectWithValue }) => {
     try {
       const res = await axios.post(`${API_BASE}/login`, udata);
-      return res.data; // { message, token, user }
+      return res.data; 
     } catch (err) {
       console.error(err);
       return rejectWithValue(
@@ -38,7 +34,6 @@ export const getUser = createAsyncThunk(
   }
 );
 
-// UPDATE PROFILE PIC
 export const updateProfilePic = createAsyncThunk(
   "users/updateProfilePic",
   async (file, { getState, rejectWithValue }) => {
@@ -61,7 +56,7 @@ export const updateProfilePic = createAsyncThunk(
         }
       );
 
-      return res.data; // { message, user }
+      return res.data; 
     } catch (err) {
       console.error(err);
       return rejectWithValue(
@@ -73,7 +68,6 @@ export const updateProfilePic = createAsyncThunk(
   }
 );
 
-// FOLLOW USER
 export const followUser = createAsyncThunk(
   "users/followUser",
   async (targetId, { getState, rejectWithValue }) => {
@@ -90,7 +84,7 @@ export const followUser = createAsyncThunk(
         { targetId }
       );
 
-      return res.data; // { message, user }
+      return res.data; 
     } catch (err) {
       console.error(err);
       return rejectWithValue(
@@ -100,7 +94,6 @@ export const followUser = createAsyncThunk(
   }
 );
 
-// UNFOLLOW USER
 export const unfollowUser = createAsyncThunk(
   "users/unfollowUser",
   async (targetId, { getState, rejectWithValue }) => {
@@ -117,7 +110,7 @@ export const unfollowUser = createAsyncThunk(
         { targetId }
       );
 
-      return res.data; // { message, user }
+      return res.data; 
     } catch (err) {
       console.error(err);
       return rejectWithValue(
@@ -127,7 +120,6 @@ export const unfollowUser = createAsyncThunk(
   }
 );
 
-// === SLICE ========================================================
 
 const initialState = {
   user: null,
@@ -178,7 +170,6 @@ const PulseSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // REGISTER
       .addCase(addUser.pending, (state) => {
         state.isLoading = true;
         state.isSuccess = false;
@@ -201,7 +192,6 @@ const PulseSlice = createSlice({
           "Register failed, please try again";
       })
 
-      // LOGIN
       .addCase(getUser.pending, (state) => {
         state.isLoading = true;
         state.isSuccess = false;
@@ -246,7 +236,6 @@ const PulseSlice = createSlice({
         delete axios.defaults.headers.common["Authorization"];
       })
 
-      // UPDATE PROFILE PIC
       .addCase(updateProfilePic.pending, (state) => {
         state.isLoading = true;
         state.isError = false;
@@ -272,7 +261,6 @@ const PulseSlice = createSlice({
           action.payload?.message || "Profile picture update failed";
       })
 
-      // FOLLOW USER
       .addCase(followUser.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isError = false;
@@ -292,7 +280,6 @@ const PulseSlice = createSlice({
           action.payload?.message || "Follow failed";
       })
 
-      // UNFOLLOW USER
       .addCase(unfollowUser.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isError = false;
@@ -318,7 +305,6 @@ export const { resetStatus, logout, setCredentials, setHydrated } =
   PulseSlice.actions;
 export default PulseSlice.reducer;
 
-// === LOAD FROM LOCALSTORAGE ON APP START ==========================
 export const loadUserFromStorage = () => (dispatch) => {
   try {
     const raw = localStorage.getItem("pulseUser");
@@ -340,7 +326,6 @@ export const loadUserFromStorage = () => (dispatch) => {
   } catch (err) {
     console.error("Error loading user from storage:", err);
   } finally {
-    // mark that we checked storage (even if no user)
     dispatch(setHydrated());
   }
 };

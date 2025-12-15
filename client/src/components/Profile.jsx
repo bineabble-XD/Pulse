@@ -1,4 +1,3 @@
-// src/components/Profile.jsx
 import React, { useRef, useState, useEffect } from "react";
 import bgTexture from "../assets/6.png";
 
@@ -7,14 +6,12 @@ import { useSelector, useDispatch } from "react-redux";
 import { updateProfilePic } from "../features/PulseSlice";
 import axios from "axios";
 
-// icons – same ones used in Home.jsx
 import { FcLike } from "react-icons/fc";
 import { FaRegCommentDots } from "react-icons/fa";
 import { MdModeEdit, MdDeleteOutline } from "react-icons/md";
 
 const API_BASE = "https://pulse-1-rke8.onrender.com";
 
-// helper to format createdAt (copied from Home.jsx)
 const formatDateTime = (isoString) => {
   if (!isoString) return "";
   const d = new Date(isoString);
@@ -39,13 +36,11 @@ const Profile = () => {
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [error, setError] = useState("");
 
-  // fullscreen image modal
   const [imageModal, setImageModal] = useState({
     open: false,
     url: "",
   });
 
-  // following list modal
   const [followingModal, setFollowingModal] = useState({
     open: false,
     loading: false,
@@ -53,7 +48,6 @@ const Profile = () => {
     error: "",
   });
 
-  // followers list modal
   const [followersModal, setFollowersModal] = useState({
     open: false,
     loading: false,
@@ -61,14 +55,11 @@ const Profile = () => {
     error: "",
   });
 
-  // per-post comment input values
   const [commentInputs, setCommentInputs] = useState({});
 
-  // ✏️ edit state (same as Home.jsx)
   const [editingPostId, setEditingPostId] = useState(null);
   const [editText, setEditText] = useState("");
 
-  // 🔥 Load YOUR posts from backend using /users/:username/profile
   useEffect(() => {
     const fetchMyProfile = async () => {
       if (!user?.username) {
@@ -83,7 +74,6 @@ const Profile = () => {
           `${API_BASE}/users/${user.username}/profile`
         );
 
-        // res.data = { user, posts }
         setPosts(res.data.posts || []);
       } catch (err) {
         console.error("Profile posts error:", err);
@@ -112,7 +102,6 @@ const Profile = () => {
     dispatch(updateProfilePic(selected));
   };
 
-  // 🗑 delete a post – backend uses JWT, no authorId needed
   const handleDeletePost = async (postId) => {
     if (!user?._id) return;
 
@@ -128,7 +117,6 @@ const Profile = () => {
     }
   };
 
-  // 👍 like / unlike – backend uses JWT
   const handleToggleLike = async (postId) => {
     if (!user?._id) return;
 
@@ -144,7 +132,6 @@ const Profile = () => {
     }
   };
 
-  // 💬 comment typing
   const handleCommentChange = (postId, value) => {
     setCommentInputs((prev) => ({
       ...prev,
@@ -152,7 +139,6 @@ const Profile = () => {
     }));
   };
 
-  // 💬 submit comment
   const handleAddComment = async (postId) => {
     if (!user?._id) return;
 
@@ -181,7 +167,6 @@ const Profile = () => {
     }
   };
 
-  // ✏️ start / cancel / save edit (same as Home.jsx)
   const startEditingPost = (post) => {
     if (!post || !post._id) return;
     setEditingPostId(post._id);
@@ -216,7 +201,6 @@ const Profile = () => {
     }
   };
 
-  // following / followers modals (unchanged from your previous Profile.jsx)
   const handleOpenFollowing = async () => {
     if (!user?._id) return;
 
@@ -310,7 +294,6 @@ const Profile = () => {
         <Navbar />
 
         <main className="profile-content">
-          {/* LEFT SIDE: profile card */}
           <section className="profile-sidebar">
             <div className="profile-avatar-wrap">
               <div className="profile-avatar-circle">
@@ -370,7 +353,6 @@ const Profile = () => {
             </div>
           </section>
 
-          {/* RIGHT SIDE: posts – SAME CARD STYLE AS HOME */}
           <section className="profile-feed">
             {loadingPosts ? (
               <p className="profile-empty-text">Loading your posts...</p>
@@ -469,7 +451,6 @@ const Profile = () => {
                       </div>
                     )}
 
-                    {/* TEXT OR EDIT MODE */}
                     {!isEditing && post.text && (
                       <p className="home-note-text">{post.text}</p>
                     )}
@@ -500,7 +481,6 @@ const Profile = () => {
                       </div>
                     )}
 
-                    {/* FOOTER BUTTONS */}
                     <footer className="home-note-footer">
                       <button
                         type="button"
@@ -550,7 +530,6 @@ const Profile = () => {
                       )}
                     </footer>
 
-                    {/* COMMENTS */}
                     <div className="home-post-comments">
                       {comments.length > 0 && (
                         <div className="home-post-comments-list">
@@ -600,7 +579,6 @@ const Profile = () => {
         </main>
       </div>
 
-      {/* IMAGE MODAL */}
       {imageModal.open && (
         <div
           className="image-modal-backdrop"
@@ -626,7 +604,6 @@ const Profile = () => {
         </div>
       )}
 
-      {/* FOLLOWING MODAL */}
       {followingModal.open && (
         <div
           className="follow-modal-backdrop"
@@ -688,7 +665,6 @@ const Profile = () => {
         </div>
       )}
 
-      {/* FOLLOWERS MODAL */}
       {followersModal.open && (
         <div
           className="follow-modal-backdrop"
